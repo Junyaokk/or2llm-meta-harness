@@ -1,0 +1,355 @@
+======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_h2u_000    0.7459     p01_stationary_L0=0.8846, p04_increasing_trend_L0=0.8728, p07_seasonal_L4=0.5517, p08_changepoint_L0=0.8760, p06_variance_L4=0.5444
+2     candidate_h2u_002    0.7371     p01_stationary_L0=0.8881, p04_increasing_trend_L0=0.8619, p07_seasonal_L4=0.5655, p08_changepoint_L0=0.8544, p06_variance_L4=0.5158
+3     candidate_h2u_001    0.7312     p01_stationary_L0=0.8661, p04_increasing_trend_L0=0.8090, p07_seasonal_L4=0.5510, p08_changepoint_L0=0.8787, p06_variance_L4=0.5514
+
+======================================================================
+DETAILED TRACE: candidate_h2u_000 (mean NR = 0.7459)
+======================================================================
+
+### Instance: p06_variance_L4 (NR = 0.5444)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4477.1
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141      141      0        0.0        STEP 1: pipe_status is UNDERFILLED with IP=0, B=541, ratio=0.00, indicating critically low pipeline. trend_dir is volati
+2    155      142.7822216182063 142      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=141, B=555, ratio=0.25), indicating high risk of stockout. Trend is up with 4 period
+3    128      159      159      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=284, B=603, ratio=0.47), indicating room to order. Trend is up with 4 periods of evi
+4    117      159      159      0        0.0        STEP 1: Pipeline is ADEQUATE (IP=443, B=612, ratio=0.72), room to order 169, cap=159. Trend is up with 3 periods evidenc
+5    98       5        10       98       349.0      STEP 1: Pipeline is ADEQUATE (IP=602, B=612, ratio=0.98), room to order only 10 units. Trend is down with 3 periods evid
+6    98       47       93       98       304.2      STEP 1: Pipeline is ADEQUATE (IP=509, B=603, ratio=0.84). Trend is down with 4 periods evidence and R²=0.974, indicating
+7    47       96       137      47       -11.8      STEP 1: Pipe status is ADEQUATE (IP=458, B=595, ratio=0.77). Trend is down with 3 periods evidence (slope=-10.9/p, R²=0.
+8    83       61       71       83       56.2       STEP 1: Pipeline status is ADEQUATE (IP=507, B=578, ratio=0.88), room to order 71. Trend is down with 3 periods evidence
+9    123      66       83       123      334.2      STEP 1: Pipeline is ADEQUATE (IP=485, B=569, ratio=0.85), room to order 83. Trend is volatile with slope -9.6/p, evidenc
+10   92       151      146      92       255.2      STEP 1: pipe_status is ADEQUATE (ratio 0.74), not OVERFILLED, so ordering is possible. Trend is up with 3 periods eviden
+11   119      70       82       119      386.2      STEP 1: Pipeline is ADEQUATE (IP=487, B=569, ratio=0.86), room to order 82. Trend is up with 3 periods evidence, slope +
+12   84       134      134      84       269.2      STEP 1: Pipe status is ADEQUATE (ratio 0.77), not overfilled. Trend is flat with 0 evidence periods, R²=0.253, CV=0.189 
+13   102      62       78       102      377.2      STEP 1: Pipeline is ADEQUATE (IP=488, B=566, ratio=0.86). Trend is down with 3 periods evidence (slope=-9.0/p). OR trust
+14   130      116      116      130      468.2      STEP 1: Pipe status is ADEQUATE (ratio 0.79), not overfilled. Trend is flat with no evidence (0 periods), CV is low (0.1
+15   123      137      137      121.78222161820634 487.1      STEP 1: pipe_status is ADEQUATE (IP=434, B=571, ratio=0.76), room to order 137. Trend is flat with slope +5.1/p but evid
+16   139      147      126      134.0    536.0      STEP 1: Pipeline status is ADEQUATE (IP=449, B=575, ratio=0.78), room to order 126. Trend is up with 3 periods of eviden
+17   107      139      121      62.0     248.0      STEP 1: Pipeline status is ADEQUATE (IP=462, B=584, ratio=0.79), room to order 121. Trend is up with 3 periods evidence,
+18   78       22       43       78       274.0      STEP 1: Pipeline status is ADEQUATE (IP=539, B=583, ratio=0.93), room to order 43. Trend is down with 3 periods evidence
+19   66       47       93       66       155.0      STEP 1: Pipe status is ADEQUATE (IP=483, B=577, ratio=0.84). Trend is down with 3 periods of evidence (slope=-16.7/p, R²
+20   49       84       105      49       -11.0      STEP 1: pipe_status is ADEQUATE, IP=464, B=570, room to order 105. Trend is down with 4 periods evidence, slope -24.8/p,
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 16 ---
+  Demand: 139, OR rec: 126, LLM ordered: 147
+  Full Rationale:
+  STEP 1: Pipeline status is ADEQUATE (IP=449, B=575, ratio=0.78), room to order 126. Trend is up with 3 periods of evidence (slope +14.5/p, R²=0.803). OR trust level is low due to i.i.d. violation (uptrend). Gap_pct is +4.1% (small). STEP 2: Since gap_pct < 15% but trust is low and trend is up with evidence=3, I lean toward OVERRIDE but cautiously. The gap is small, so I adjust moderately. STEP 3: Uptrend with sustained evidence suggests bias above OR. I cap adjustment at +50% of OR (126*0.5=63),
+
+--- Period 17 ---
+  Demand: 107, OR rec: 121, LLM ordered: 139
+  Full Rationale:
+  STEP 1: Pipeline status is ADEQUATE (IP=462, B=584, ratio=0.79), room to order 121. Trend is up with 3 periods evidence, slope +10.4/p, R²=0.726. OR trust level is low due to i.i.d. violation (uptrend) and gap=+15.4% > 8%. No anomaly alerts. STEP 2: gap_pct=15.4% is between 15-20% -> CAUTION zone. However, trust_level is low and trend is up with evidence=3, so I lean toward OVERRIDE but with caution. STEP 3: Uptrend with sustained evidence suggests bias above OR. Suggested bias from audit is +14
+
+--- Period 18 ---
+  Demand: 78, OR rec: 43, LLM ordered: 22
+  Full Rationale:
+  STEP 1: Pipeline status is ADEQUATE (IP=539, B=583, ratio=0.93), room to order 43. Trend is down with 3 periods evidence, slope -5.3/p, R²=0.256. OR trust is low due to i.i.d. violation (down-trend detected). Gap is +16.6% (between 15-20%), so CAUTION zone. STEP 2: Since gap is 16.6% (between 15-20%) and trust is low, I lean toward OR but adjust cautiously. STEP 3: Trend is down, so bias below OR. Suggested bias from audit is +7 (16.3%), but that is for uptrend; for downtrend, I should bias down
+
+--- Period 19 ---
+  Demand: 66, OR rec: 93, LLM ordered: 47
+  Full Rationale:
+  STEP 1: Pipe status is ADEQUATE (IP=483, B=577, ratio=0.84). Trend is down with 3 periods of evidence (slope=-16.7/p, R²=0.687). OR trust is low due to i.i.d. violation (down-trend detected). Gap is +5.7% (small). No alerts. STEP 2: |gap_pct|=5.7% < 15%, but trust is low and trend is down with evidence >=3, so override is warranted. STEP 3: Downward trend with sustained evidence suggests bias below OR. Suggested bias from audit is +5 (upward), but that contradicts the clear downward trend; I wil
+
+--- Period 20 ---
+  Demand: 49, OR rec: 105, LLM ordered: 84
+  Full Rationale:
+  STEP 1: pipe_status is ADEQUATE, IP=464, B=570, room to order 105. Trend is down with 4 periods evidence, slope -24.8/p, R²=0.966, gap_pct=-6.3%. OR trust is low due to i.i.d. violation (down-trend). No anomaly alerts. STEP 2: gap_pct is -6.3% (<15%) but trust is low and trend is clearly down with strong evidence. Since gap is small but trend is strong, I will override cautiously. STEP 3: Downward trend with sustained evidence suggests bias below OR. OR suggests 105. I will adjust downward by 20
+
+### Instance: p07_seasonal_L4 (NR = 0.5517)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4521.8
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      100      167      0        0.0        STEP 1: pipe_status is UNDERFILLED, IP=0, B=611, ratio=0.00, critically low. trend_dir is down with 3 periods evidence, 
+2    114      130      162      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=100, B=608, ratio=0.16), indicating risk of stockout. Trend is down with 3 periods o
+3    86       158      158      0        0.0        STEP 1: pipe_status is UNDERFILLED (IP=230, B=606, ratio=0.38), indicating low pipeline inventory and risk of stockout. 
+4    118      140      153      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=388, B=590, ratio=0.66), room to order 201, cap=154. Trend is flat with 0 evidence p
+5    121      64       64       100      400.0      STEP 1: Pipeline is ADEQUATE (IP=528, B=593, ratio=0.89), room to order 64. Trend is flat with no evidence of shift (slo
+6    75       104      104      75       245.0      STEP 1: Pipeline status is ADEQUATE (IP=492, B=596, ratio=0.82), room to order 104. Trend is flat with 0 evidence period
+7    74       61       61       74       157.0      STEP 1: pipe_status is ADEQUATE (IP=521, B=582, ratio=0.90), so pipeline is not overfilled. Trend is flat with slope -3.
+8    119      57       61       119      316.0      STEP 1: Pipeline status is ADEQUATE (IP=508, B=570, ratio=0.89), room to order 61. Trend is down with 3 periods evidence
+9    102      118      127      102      286.0      STEP 1: Pipeline is ADEQUATE (ratio 0.78), not overfilled. Trend is down with 3 periods evidence, but R² is very low (0.
+10   140      97       109      140      474.0      STEP 1: Pipe status is ADEQUATE (ratio 0.81), not overfilled. Trend is flat with 0 evidence periods, so no strong direct
+11   78       149.52219773857607 149      78       243.0      STEP 1: Pipe status is ADEQUATE (ratio 0.72), not overfilled. Trend is up with 3 periods evidence, slope +18.1/p, R²=0.7
+12   158      67       84       126      504.0      STEP 1: Pipeline is ADEQUATE (IP=491, B=575, ratio=0.85), room to order 84. Trend is down with 3 periods evidence (slope
+13   150      154.76432223171244 154      118      472.0      STEP 1: Pipeline is ADEQUATE (IP=432, B=595, ratio=0.72), room to order 163, cap=155. Trend is up with 3 periods evidenc
+14   124      153      139      97       388.0      STEP 1: Pipeline status is ADEQUATE (IP=468, B=608, ratio=0.77), room to order 139. Trend is volatile with slope +11 but
+15   99       98       86       99       345.5      STEP 1: Pipeline status is ADEQUATE (IP=524, B=611, ratio=0.86), so pipeline is not overfilled. Trend is volatile with n
+16   58       66       82       58       172.5      STEP 1: Pipe status is ADEQUATE (IP=523, B=606, ratio=0.86), not overfilled. Trend direction is down with 4 periods of e
+17   103      52       65       103      300.7      STEP 1: pipe_status is ADEQUATE (ratio 0.89), not overfilled. Trend is down with 4 periods evidence and R²=0.985, strong
+18   46       101      114      46       -34.3      STEP 1: Pipeline status is ADEQUATE (IP=480, B=594, ratio=0.81), room to order 114. Trend is down with 3 periods evidenc
+19   101      25       49       101      188.7      STEP 1: pipe_status is ADEQUATE, so pipeline is not overfilled. Trend is down with 3 periods evidence, gap is -27.4% (la
+20   69       62       123      69       63.7       STEP 1: Pipe status is ADEQUATE (ratio 0.79), not overfilled. Trend is up with 3 periods evidence, but R² is low (0.101)
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 16 ---
+  Demand: 58, OR rec: 82, LLM ordered: 66
+  Full Rationale:
+  STEP 1: Pipe status is ADEQUATE (IP=523, B=606, ratio=0.86), not overfilled. Trend direction is down with 4 periods of evidence (slope=-20.3/p, R²=0.958). Trust level is low due to i.i.d. violation (down-trend detected). Gap is +19.8% (between 15-20%), so CAUTION zone. STEP 2: Since gap is 19.8% (between 15-20%) and trust is low, I lean toward OR but adjust. The trend is down, so I should bias below OR to avoid overstocking. STEP 3: Downward trend with sustained evidence (4 periods) suggests red
+
+--- Period 17 ---
+  Demand: 103, OR rec: 65, LLM ordered: 52
+  Full Rationale:
+  STEP 1: pipe_status is ADEQUATE (ratio 0.89), not overfilled. Trend is down with 4 periods evidence and R²=0.985, strong downtrend. OR trust is low due to i.i.d. violation (downtrend). Gap is -0.5%, small. STEP 2: Despite small gap, trust is low and trend is strong with evidence >=3, so override. STEP 3: Downtrend with sustained evidence -> bias below OR. Adjustment magnitude: cap at -50% of OR (65 * 0.5 = 32.5). Since gap is small, use moderate downward adjustment: reduce OR by 20% -> 65 * 0.8 
+
+--- Period 18 ---
+  Demand: 46, OR rec: 114, LLM ordered: 101
+  Full Rationale:
+  STEP 1: Pipeline status is ADEQUATE (IP=480, B=594, ratio=0.81), room to order 114. Trend is down with 3 periods evidence, slope -10.4/p, R²=0.237. OR trust is low due to i.i.d. violation (down-trend detected) and equal-weights causing overestimation (gap=-11.1% > 8%). No anomaly alerts. STEP 2: |gap_pct|=11.1% < 15%, but trust is low and trend is down with evidence >=3, so override is warranted. STEP 3: Downward trend with sustained evidence suggests bias below OR. Suggested bias from audit is 
+
+--- Period 19 ---
+  Demand: 101, OR rec: 49, LLM ordered: 25
+  Full Rationale:
+  STEP 1: pipe_status is ADEQUATE, so pipeline is not overfilled. Trend is down with 3 periods evidence, gap is -27.4% (large), trust_level is low due to i.i.d. violation (down-trend). STEP 2: |gap_pct| > 20% and clear down-trend with evidence >= 3 -> OVERRIDE. STEP 3: Down-trend with sustained evidence -> bias BELOW OR. Suggested bias from audit is -26.5%, but I cap adjustment at -50% of OR. OR is 49, so -50% gives 24.5, round to 25. STEP 4: Final q = 25, respecting cap of 156. Override down is s
+
+--- Period 20 ---
+  Demand: 69, OR rec: 123, LLM ordered: 62
+  Full Rationale:
+  STEP 1: Pipe status is ADEQUATE (ratio 0.79), not overfilled. Trend is up with 3 periods evidence, but R² is low (0.101) and CV is high (0.380), indicating volatility. Trust level is low due to i.i.d. violation (uptrend) and OR overestimates demand (gap -26.8%). STEP 2: |gap_pct| = 26.8% > 20%, clear uptrend with evidence >= 3, so OVERRIDE. STEP 3: Uptrend with sustained evidence suggests bias above OR. However, the gap is negative (OR overestimates), meaning OR is already high relative to recen
+
+======================================================================
+DETAILED TRACE: candidate_h2u_001 (mean NR = 0.7312)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5510)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4516.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      100      167      0        0.0        STEP 0: Demand history has only 5 periods: [76, 130, 159, 101, 78]. Direction changes: up (76→130), up (130→159), down (
+2    114      162      162      0        0.0        STEP 0: Demand history (last 6 periods): [76, 130, 159, 101, 78, 114]. Direction changes: 76→130 (up), 130→159 (up), 159
+3    86       141      158      0        0.0        STEP 0: Examine last 7 periods demand: [76, 130, 159, 101, 78, 114, 114]. Direction changes: 76→130 (up), 130→159 (up), 
+4    118      153.8129313107513 153      0        0.0        STEP 0: Pattern classification. Demand history (last 8 periods): [76, 130, 159, 101, 78, 114, 114, 86]. Direction change
+5    121      31       35       100      400.0      STEP 0: Pattern classification. Demand history (last 9 periods): [76, 130, 159, 101, 78, 114, 114, 86, 118]. Direction c
+6    75       108      108      75       213.0      STEP 0: Pattern classification. Examining the last 6 periods of demand: [114, 114, 86, 118, 121] (periods 1-5). Directio
+7    74       68       61       74       142.0      STEP 0: Pattern classification. Examining the last 6 periods of demand: [114, 86, 118, 121, 75] (periods 2-6). Direction
+8    119      61       54       119      287.2      STEP 0: Pattern classification. Examining last 6 periods of demand (periods 2-7): [101, 78, 114, 114, 86, 118, 121, 75, 
+9    102      124      117      102      290.2      STEP 0: Pattern classification. Examining the last 6 periods of demand: [118, 121, 75, 74, 119] (periods 4-8). Direction
+10   140      86       92       140      474.2      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 4-9): [86, 118, 121, 75, 74, 119]. Direc
+11   78       135      149      78       236.2      STEP 0: Pattern classification. Examining the last 6 periods of demand: [121, 75, 74, 119, 102, 140]. Direction changes:
+12   158      93       93       136.8129313107513 547.3      STEP 0: Pattern classification. Demand history (last 10 periods): [114, 86, 118, 121, 75, 74, 119, 102, 140, 78]. Direct
+13   150      137      154      124.0    496.0      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 7-12): [119, 102, 140, 78, 158]. Directi
+14   124      139      157      86.0     344.0      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 8-13): [119, 102, 140, 78, 158, 150]. Di
+15   99       94       106      99       360.0      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 9-14): [102, 140, 78, 158, 150, 124]. Di
+16   58       95       107      58       161.0      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 10-15): [121, 75, 74, 119, 102, 140, 78,
+17   103      30       60       103      307.0      STEP 0: Pattern classification. Demand history (last 10 periods): [74, 119, 102, 140, 78, 158, 150, 124, 99, 58]. Direct
+18   46       105      131      46       -14.0      STEP 0: Demand history shows direction changes: P13 up, P14 volatile, P15 volatile, P16 down, P17 down. Last 6 periods: 
+19   101      31       62       101      213.0      STEP 0: Demand history shows direction changes: 150→124 (down), 124→99 (down), 99→58 (down), 58→103 (up), 103→46 (down).
+20   69       149      130      69       59.0       STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 14-19): [124, 99, 58, 103, 46, 101]. Dir
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 16 ---
+  Demand: 58, OR rec: 107, LLM ordered: 95
+  Full Rationale:
+  STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 10-15): [121, 75, 74, 119, 102, 140, 78, 158, 150, 124, 99] — direction changes: 121→75 (down), 75→74 (flat), 74→119 (up), 119→102 (down), 102→140 (up), 140→78 (down), 78→158 (up), 158→150 (down), 150→124 (down), 124→99 (down). Counting changes in last 6 periods (periods 10-15): 140→78 (down), 78→158 (up), 158→150 (down), 150→124 (down), 124→99 (down) — that's 3 changes (down, up, down) in 5 periods, so oscillating. 
+
+--- Period 17 ---
+  Demand: 103, OR rec: 60, LLM ordered: 30
+  Full Rationale:
+  STEP 0: Pattern classification. Demand history (last 10 periods): [74, 119, 102, 140, 78, 158, 150, 124, 99, 58]. Direction changes: 74→119 (up), 119→102 (down), 102→140 (up), 140→78 (down), 78→158 (up), 158→150 (down), 150→124 (down), 124→99 (down), 99→58 (down). In the last 6 periods (158, 150, 124, 99, 58): direction changes: 158→150 (down), 150→124 (down), 124→99 (down), 99→58 (down) — only 1 change (down to down is not a change). Actually count: 158→150 (down), 150→124 (down), 124→99 (down)
+
+--- Period 18 ---
+  Demand: 46, OR rec: 131, LLM ordered: 105
+  Full Rationale:
+  STEP 0: Demand history shows direction changes: P13 up, P14 volatile, P15 volatile, P16 down, P17 down. Last 6 periods: P12 (158) to P13 (150) down, P13 to P14 (124) down, P14 to P15 (99) down, P15 to P16 (58) down, P16 to P17 (103) up. That's 1 change in last 6 periods, so not oscillating. Trend is down with 3 consecutive periods of decline (P14-P16) and then a slight uptick in P17. This is a TREND PATH. STEP 2: Gap is -11.1% (between 15-20%? No, it's below 15%), but evidence count is 3 and tre
+
+--- Period 19 ---
+  Demand: 101, OR rec: 62, LLM ordered: 31
+  Full Rationale:
+  STEP 0: Demand history shows direction changes: 150→124 (down), 124→99 (down), 99→58 (down), 58→103 (up), 103→46 (down). In last 6 periods (13-18), direction changed 2 times (down→up at period 17, up→down at period 18). Not 3+ changes, so not oscillation. Trend is mostly down (4 of last 5 periods down), so go to TREND PATH. STEP 2: |gap_pct|=27.4% > 20%, clear down trend with 3 periods evidence, trust low. OVERRIDE. STEP 3: Downward bias. OR q=62. Cap adjustment at -50% gives 31. Pipeline ADEQUA
+
+--- Period 20 ---
+  Demand: 69, OR rec: 130, LLM ordered: 149
+  Full Rationale:
+  STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 14-19): [124, 99, 58, 103, 46, 101]. Direction changes: 124→99 (down), 99→58 (down), 58→103 (up), 103→46 (down), 46→101 (up). That's 4 changes in 5 transitions, so 3+ changes in last 6 periods → DEMAND IS OSCILLATING. Go to OSCILLATION PATH.
+
+OSCILLATION PATH: Identify current position. Recent demand (last 3 periods: 103, 46, 101) is mixed: 103 above d_bar=105.2? No, 103 is slightly below. 46 is far below, 101 is sli
+
+### Instance: p06_variance_L4 (NR = 0.5514)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4534.3
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141      141      0        0.0        STEP 0: Demand history is only 5 periods, but direction changes: 122→121 (flat), 121→60 (down), 60→83 (up), 83→105 (up).
+2    155      142.7822216182063 142      0        0.0        STEP 0: Demand history [122, 121, 60, 83, 105, 118] shows direction changes: 122→121 (down), 121→60 (down), 60→83 (up), 
+3    128      140      159      0        0.0        STEP 0: Demand history [122, 121, 60, 83, 105, 118, 155] shows direction changes: 122→121 (down), 121→60 (down), 60→83 (
+4    117      159      159      0        0.0        STEP 0: Demand history [122, 121, 60, 83, 105, 118, 155, 128] shows direction changes: 122→121 (down), 121→60 (down), 60
+5    98       14       29       98       349.0      STEP 0: Pattern classification. Examining the last 6 periods of demand: [60, 83, 105, 118, 155, 128, 117]. Direction cha
+6    98       72       103      98       304.2      STEP 0: Pattern classification. Examining the last 6 periods of demand: [155, 128, 117, 98, ...] - direction changes: 15
+7    47       85       122      47       7.2        STEP 0: Pattern classification. Examining the last 6 periods of demand (155, 128, 117, 98, 98, and the current period's 
+8    83       47       67       83       75.2       STEP 0: Pattern classification. Examining the last 6 periods of demand: [155, 128, 117, 98, 98, 47]. Direction changes: 
+9    123      107      93       123      344.2      STEP 0: Pattern classification. Examining the last 6 periods of demand: [117, 98, 98, 47, 83] (periods 4-8). Direction c
+10   92       138      115      92       240.2      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 4-9): [128, 117, 98, 98, 47, 83, 123]. D
+11   119      54       64       119      382.2      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 5-10): [117, 98, 98, 47, 83, 123, 92]. D
+12   84       112      132      84       279.2      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 6-11): [98, 47, 83, 123, 92, 119]. Direc
+13   102      87       98       102      346.2      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 7-12): [98, 47, 83, 123, 92, 119]. Direc
+14   130      122      111      130      450.2      STEP 0: Examine last 6 periods of demand: [123, 92, 119, 84, 102] (periods 8-13). Direction changes: 123→92 (down), 92→1
+15   123      118      126      123      491.2      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 9-14): [98, 92, 119, 84, 102, 130]. Dire
+16   139      119      135      112.78222161820634 451.1      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 10-15): [92, 119, 84, 102, 130, 123]. Di
+17   107      119      137      87.0     348.0      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 11-16): [119, 84, 102, 130, 123, 139]. D
+18   78       96       104      78       268.0      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 12-17): [84, 102, 130, 123, 139, 107]. D
+19   66       87       80       66       168.0      STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 13-18): [92, 119, 84, 102, 130, 123, 139
+20   49       36       52       49       30.0       STEP 0: Pattern classification. Examining the last 6 periods of demand: [123, 139, 107, 78, 66] (periods 14-19). Directi
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 16 ---
+  Demand: 139, OR rec: 135, LLM ordered: 119
+  Full Rationale:
+  STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 10-15): [92, 119, 84, 102, 130, 123]. Direction changes: 92→119 (up), 119→84 (down), 84→102 (up), 102→130 (up), 130→123 (down). That's 4 changes in 6 periods, so DEMAND IS OSCILLATING. Go to OSCILLATION PATH.
+
+OSCILLATION PATH: Identify current position. Recent demand (last 3 periods: 84, 102, 130, 123) shows a peak at 130 then drop to 123. The last 2 periods (130, 123) are both above the OR mean d_bar=105.4, suggest
+
+--- Period 17 ---
+  Demand: 107, OR rec: 137, LLM ordered: 119
+  Full Rationale:
+  STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 11-16): [119, 84, 102, 130, 123, 139]. Direction changes: 119→84 (down), 84→102 (up), 102→130 (up), 130→123 (down), 123→139 (up). That's 4 changes in 6 periods, so DEMAND IS OSCILLATING. Go to OSCILLATION PATH.
+
+OSCILLATION PATH: Identify current position. Recent demand (last 3 periods: 130, 123, 139) is consistently above the OR mean d_bar=107.0. This suggests we may be near a PEAK, and demand likely to decline soon
+
+--- Period 18 ---
+  Demand: 78, OR rec: 104, LLM ordered: 96
+  Full Rationale:
+  STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 12-17): [84, 102, 130, 123, 139, 107]. Direction changes: 84→102 (up), 102→130 (up), 130→123 (down), 123→139 (up), 139→107 (down). That's 4 changes in 5 transitions, so 3+ changes in last 6 periods → DEMAND IS OSCILLATING. Go to OSCILLATION PATH.
+
+OSCILLATION PATH: Identify current position. Recent demand (last 3 periods: 130, 123, 139, 107) - the last 3 are 123, 139, 107. The average of these is 123.0, which is abov
+
+--- Period 19 ---
+  Demand: 66, OR rec: 80, LLM ordered: 87
+  Full Rationale:
+  STEP 0: Pattern classification. Examining the last 6 periods of demand (periods 13-18): [92, 119, 84, 102, 130, 123, 139, 107, 78] — direction changes: 92→119 (up), 119→84 (down), 84→102 (up), 102→130 (up), 130→123 (down), 123→139 (up), 139→107 (down), 107→78 (down). Counting changes in last 6 periods (periods 13-18): 84→102 (up), 102→130 (up), 130→123 (down), 123→139 (up), 139→107 (down), 107→78 (down) — that's 4 changes (up, down, up, down) in 6 periods, so DEMAND IS OSCILLATING. Go to OSCILLA
+
+--- Period 20 ---
+  Demand: 49, OR rec: 52, LLM ordered: 36
+  Full Rationale:
+  STEP 0: Pattern classification. Examining the last 6 periods of demand: [123, 139, 107, 78, 66] (periods 14-19). Direction changes: 139→107 (down), 107→78 (down), 78→66 (down) — only 1 change in last 5 periods, but looking at last 6 periods (including period 14=123): 123→139 (up), 139→107 (down), 107→78 (down), 78→66 (down) — 2 changes. However, the last 4 periods show a consistent downward direction (107→78→66), so this is a TREND PATH, not oscillation. Go to STEP 2. Trend is down with 4 period
+
+======================================================================
+DETAILED TRACE: candidate_h2u_002 (mean NR = 0.7371)
+======================================================================
+
+### Instance: p06_variance_L4 (NR = 0.5158)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4242.3
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141      141      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=0, B=541, ratio=0.00), indicating high stockout risk. Trend is volatile with no clea
+2    155      142.7822216182063 142      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=141, B=555, ratio=0.25), indicating high risk of stockout. Trend is up with 4 period
+3    128      159      159      0        0.0        STEP 1: pipe_status is UNDERFILLED (ratio 0.47), trend_dir is up with 4 periods evidence (R²=0.959), trust_level is low 
+4    117      159      159      0        0.0        STEP 1: Pipeline is ADEQUATE (IP=443, B=612, ratio=0.72), room to order 169, cap=159. Trend is up with 3 periods evidenc
+5    98       9        10       98       349.0      STEP 1: Pipeline is ADEQUATE (IP=602, B=612, ratio=0.98). Trend direction is 'down' with 3 periods of evidence, but the 
+6    98       62       89       98       304.2      STEP 1: Pipeline is ADEQUATE (IP=513, B=603, ratio=0.85). Trend is down with 4 periods evidence and strong R²=0.974. OR 
+7    47       83       118      47       -11.8      STEP 1: Pipeline is ADEQUATE (IP=477, B=595, ratio=0.80). Trend is down with 3 periods evidence (slope -10.9/p, R²=0.899
+8    83       56       65       83       56.2       STEP 1: Pipeline is ADEQUATE (IP=513, B=578, ratio=0.89). Trend is down with 3 periods evidence, slope -21.0/p. OR trust
+9    123      74       82       123      330.2      STEP 1: Pipeline is ADEQUATE (IP=486, B=569, ratio=0.85). Trend is volatile with a negative slope (-9.6/p) but only 0 ev
+10   92       151      137      92       236.2      STEP 1: Pipeline is ADEQUATE (IP=437, B=575, ratio=0.76). Trend is up with 3 periods evidence, slope +11.1/p. OR trust i
+11   119      88       73       119      380.2      STEP 1: Pipeline is ADEQUATE (IP=496, B=569, ratio=0.87). Trend is up with 3 periods evidence, slope +17.5/p, R²=0.522. 
+12   84       107      107      84       268.2      STEP 1: Pipeline is ADEQUATE (IP=465, B=573, ratio=0.81), room to order 107. Trend is flat (5p avg=104.2 vs d_bar=104.3,
+13   102      39       78       102      368.2      STEP 1: Pipeline is ADEQUATE (IP=488, B=566, ratio=0.86). Trend is down with 3 periods evidence, slope -9.0/p. OR trust 
+14   130      139      139      130      459.2      STEP 1: pipe_status is ADEQUATE (IP=425, B=564, ratio=0.75), trend_dir is flat with 0 evidence periods, trust_level is h
+15   123      137      137      123      466.2      STEP 1: Pipeline is ADEQUATE (IP=434, B=571, ratio=0.76). Trend is flat with 0 evidence periods. OR trust is high. No ac
+16   139      147      127      132.78222161820634 531.1      STEP 1: Pipeline is ADEQUATE (IP=448, B=575, ratio=0.78). Trend is up with 3 periods evidence, slope +14.5/p, R²=0.803. 
+17   107      145      121      39.0     156.0      STEP 1: Pipeline is ADEQUATE (IP=462, B=584, ratio=0.79). Trend is up with 3 periods evidence, slope +10.4/p, R²=0.726. 
+18   78       12       14       78       251.0      STEP 1: pipe_status is ADEQUATE (IP=568, B=583, ratio=0.97), room to order only 14. Trend_dir is 'down' with 3 periods e
+19   66       59       74       66       132.0      STEP 1: Pipeline is ADEQUATE (IP=502, B=577, ratio=0.87). Trend is down with 3 periods evidence (slope -16.7/p). OR trus
+20   49       37       74       49       -34.0      STEP 1: Pipeline is ADEQUATE (IP=495, B=570, ratio=0.87). Trend is down with 4 periods of evidence (slope -24.8/p, R²=0.
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 16 ---
+  Demand: 139, OR rec: 127, LLM ordered: 147
+  Full Rationale:
+  STEP 1: Pipeline is ADEQUATE (IP=448, B=575, ratio=0.78). Trend is up with 3 periods evidence, slope +14.5/p, R²=0.803. OR trust is low due to i.i.d. violation (uptrend). Gap is +4.1% (5p-avg=109.8 vs d_bar=105.4). No carry-over insight from previous period. STEP 2: Gap <15% but trust is low and trend is up with evidence=3, so I override OR. STEP 3: Uptrend with sustained evidence (3 periods) suggests bias above OR. Adjustment magnitude: gap_pct=4.1%, but trend slope is strong, so I use +20% of 
+
+--- Period 17 ---
+  Demand: 107, OR rec: 121, LLM ordered: 145
+  Full Rationale:
+  STEP 1: Pipeline is ADEQUATE (IP=462, B=584, ratio=0.79). Trend is up with 3 periods evidence, slope +10.4/p, R²=0.726. OR trust is low due to i.i.d. violation and gap=+15.4% > 8%. No carry-over insight from previous period (none provided). STEP 2: gap_pct=15.4% is between 15-20% → CAUTION. However, OR trust is low and trend evidence is 3 periods, so I lean toward override. STEP 3: Uptrend with sustained evidence (3p) → bias above OR. Cap adjustment at +50% of OR (121*0.5=60.5). Suggested bias f
+
+--- Period 18 ---
+  Demand: 78, OR rec: 14, LLM ordered: 12
+  Full Rationale:
+  STEP 1: pipe_status is ADEQUATE (IP=568, B=583, ratio=0.97), room to order only 14. Trend_dir is 'down' with 3 periods evidence, but 5p-avg=124.8 is above d_bar=107.0, gap=+16.6%. OR trust is low due to i.i.d. violation (down-trend detected) and equal-weights causing underestimation. No carry-over insight from previous period. STEP 2: gap_pct=16.6% is between 15-20% -> CAUTION. Trust is low, so lean toward override but cautiously. STEP 3: Trend is down, but recent demand (last 3 periods: 130, 12
+
+--- Period 19 ---
+  Demand: 66, OR rec: 74, LLM ordered: 59
+  Full Rationale:
+  STEP 1: Pipeline is ADEQUATE (IP=502, B=577, ratio=0.87). Trend is down with 3 periods evidence (slope -16.7/p). OR trust is low due to i.i.d. violation (down-trend). Gap is +5.7% (5p avg 111.8 vs d_bar 105.7). No carry-over insight from previous period. STEP 2: Since trust is low and trend is down with evidence >=3, I override OR. STEP 3: Downward trend suggests reducing order quantity to avoid excess inventory. OR suggests +4 bias (5.4%), but I override downward. Given the recent demand drop (
+
+--- Period 20 ---
+  Demand: 49, OR rec: 74, LLM ordered: 37
+  Full Rationale:
+  STEP 1: Pipeline is ADEQUATE (IP=495, B=570, ratio=0.87). Trend is down with 4 periods of evidence (slope -24.8/p, R²=0.966). OR trust is low due to i.i.d. violation (down-trend). Gap is -6.3% (5p-avg=97.5 vs d_bar=104.1). No carry-over insight from previous period. STEP 2: Gap < 15% but trust is low and trend is strong with 4 evidence periods -> OVERRIDE. STEP 3: Down-trend with sustained evidence -> bias below OR. Suggested bias from OR audit is -5.4%, but given strong trend and low trust, I a
+
+### Instance: p07_seasonal_L4 (NR = 0.5655)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4634.8
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      134      167      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=0, B=611, ratio=0.00), indicating risk of stockout. Trend is down with 3 periods evi
+2    114      113      162      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=134, B=608, ratio=0.22), trend_dir is down with 3 periods evidence, trust_level is l
+3    86       158      158      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=247, B=606, ratio=0.41), indicating risk of stockout. Trend is flat with slope +7.5/
+4    118      138      153      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=405, B=590, ratio=0.69), room to order 184, cap=154. Trend is flat (slope +2.4, R²=0
+5    121      49       49       121      471.0      STEP 1: Pipe status is ADEQUATE (IP=543, B=593, ratio=0.92). Trend is flat with slope -1.6/p and R²=0.02, evidence 0 per
+6    75       125      125      75       249.0      STEP 1: pipe_status is ADEQUATE (IP=471, B=596, ratio=0.79), trend_dir is flat with evidence=0, trust_level is high, gap
+7    74       61       61       74       161.0      STEP 1: Pipeline is ADEQUATE (ratio 0.90), trend is flat with 0 evidence periods, OR trust is high, gap is -6.1% (within
+8    119      49       61       119      322.0      STEP 1: Pipeline is ADEQUATE (IP=508, B=570, ratio=0.89). Trend is down with 3 periods evidence (slope -17.8/p, R²=0.78)
+9    102      122      135      102      307.0      STEP 1: Pipeline is ADEQUATE (IP=438, B=574, ratio=0.76). Trend is down with 3 periods evidence (slope -0.7/p, R²=0.001,
+10   140      102      113      140      474.0      STEP 1: Pipeline is ADEQUATE (IP=458, B=571, ratio=0.80). Trend is flat with slope +12.6/p but evidence count is 0, so n
+11   78       149.52219773857607 149      78       243.0      STEP 1: Pipeline is ADEQUATE (ratio 0.72), not overfilled. Trend is up with 3 periods evidence (slope +18.1/p, R²=0.70).
+12   158      66       83       118      472.0      STEP 1: Pipeline is ADEQUATE (IP=492, B=575, ratio=0.85). Trend is down with 3 periods evidence (slope -8.5/p). OR trust
+13   150      154.76432223171244 154      122      488.0      STEP 1: Pipeline is ADEQUATE (IP=440, B=595, ratio=0.74), room to order 155. Trend is up with 3 periods evidence, slope 
+14   124      158      135      102      408.0      STEP 1: Pipeline is ADEQUATE (IP=472, B=608, ratio=0.78). Trend is volatile with no clear direction (R²=0.152, evidence=
+15   99       90       82       99       345.5      STEP 1: Pipeline is ADEQUATE (IP=528, B=611, ratio=0.86). Trend is volatile with no clear direction (evidence=0p). OR tr
+16   58       69       86       58       173.5      STEP 1: pipe_status is ADEQUATE (ratio 0.86), trend_dir is down with 4 periods evidence (R²=0.958), trust_level is low d
+17   103      33       66       103      301.7      STEP 1: Pipeline is ADEQUATE (IP=530, B=597, ratio=0.89). Trend is down with 4 periods of evidence and R²=0.985, indicat
+18   46       120      134      46       -38.3      STEP 1: pipe_status is ADEQUATE, trend_dir is down with 3 periods evidence, trust_level is low, gap_pct is -11.1%. The p
+19   101      30       50       101      192.7      STEP 1: Pipe status is ADEQUATE (IP=534, B=585, ratio=0.91). Trend is down with 3 periods evidence (slope -11.4/p). Trus
+20   69       143      119      69       64.7       STEP 1: Pipeline is ADEQUATE (IP=463, B=583, ratio=0.80). Trend is up with 3 periods evidence, but R² is low (0.101) and
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 16 ---
+  Demand: 58, OR rec: 86, LLM ordered: 69
+  Full Rationale:
+  STEP 1: pipe_status is ADEQUATE (ratio 0.86), trend_dir is down with 4 periods evidence (R²=0.958), trust_level is low due to i.i.d. violation (down-trend detected). gap_pct=+19.8% (5p-avg 132.8 vs d_bar 110.8). No carry-over insight from previous period. STEP 2: |gap_pct| is 19.8% (between 15-20%) → CAUTION. Trust is low, trend is down with strong evidence → OVERRIDE toward trend. STEP 3: Down-trend with 4 evidence periods → bias BELOW OR. Adjustment magnitude: cap at -50% of OR (86 * 0.5 = 43)
+
+--- Period 17 ---
+  Demand: 103, OR rec: 66, LLM ordered: 33
+  Full Rationale:
+  STEP 1: Pipeline is ADEQUATE (IP=530, B=597, ratio=0.89). Trend is down with 4 periods of evidence and R²=0.985, indicating a strong downward shift. Trust level is low due to i.i.d. violation. Gap is -0.5%, but the trend is clear. No carry-over insight from previous period (none provided). STEP 2: Despite small gap, the strong downtrend with 4 evidence periods and low OR trust justifies an override. STEP 3: Downward trend suggests reducing order quantity below OR. The slope is -30.1 per period, 
+
+--- Period 18 ---
+  Demand: 46, OR rec: 134, LLM ordered: 120
+  Full Rationale:
+  STEP 1: pipe_status is ADEQUATE, trend_dir is down with 3 periods evidence, trust_level is low, gap_pct is -11.1%. The previous carry_over_insight is not provided, so I assume none. STEP 2: gap_pct is 11.1% (between 15-20%? Actually 11.1% < 15%, but trust is low and trend is down with evidence 3, so I lean toward override. STEP 3: downtrend with sustained evidence suggests bias below OR. The suggested bias from audit is -14 (-10.4%), which is within ±50% cap. I adjust OR down by 10.4%: q = 134 *
+
+--- Period 19 ---
+  Demand: 101, OR rec: 50, LLM ordered: 30
+  Full Rationale:
+  STEP 1: Pipe status is ADEQUATE (IP=534, B=585, ratio=0.91). Trend is down with 3 periods evidence (slope -11.4/p). Trust level is low due to i.i.d. violation (down-trend detected). Gap is -27.4% (5p avg 76.5 vs d_bar 105.3). Alert: sustained deviation (last 3 periods avg 69). Previous carry_over_insight from period 18 was 'CLAIM: demand mean shifted down ~15% | EVIDENCE: 2 | SINCE: P16'. Checking current data: 5p avg is 76.5, which is 27.4% below d_bar, supporting a larger shift. The claim of ~
+
+--- Period 20 ---
+  Demand: 69, OR rec: 119, LLM ordered: 143
+  Full Rationale:
+  STEP 1: Pipeline is ADEQUATE (IP=463, B=583, ratio=0.80). Trend is up with 3 periods evidence, but R² is low (0.101) and CV is high (0.380), indicating volatility. OR trust is low due to i.i.d. violation (uptrend) and large gap (-26.8%). No carry-over insight from previous period. STEP 2: |gap_pct| = 26.8% > 20%, clear uptrend with evidence=3, so OVERRIDE. STEP 3: Uptrend with sustained evidence suggests bias above OR. However, the recent 5p average (77.0) is well below d_bar (105.2), and the la

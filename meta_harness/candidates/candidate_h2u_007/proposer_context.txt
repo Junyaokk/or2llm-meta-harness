@@ -1,0 +1,351 @@
+======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_h2u_002    0.7457     p01_stationary_L0=0.8928, p04_increasing_trend_L0=0.8751, p07_seasonal_L4=0.5334, p08_changepoint_L0=0.8696, p06_variance_L4=0.5577
+2     candidate_h2u_000    0.7455     p01_stationary_L0=0.8860, p04_increasing_trend_L0=0.8715, p07_seasonal_L4=0.5365, p08_changepoint_L0=0.8632, p06_variance_L4=0.5700
+3     candidate_h2u_001    0.7447     p01_stationary_L0=0.8866, p04_increasing_trend_L0=0.8482, p07_seasonal_L4=0.5471, p08_changepoint_L0=0.8820, p06_variance_L4=0.5595
+4     candidate_h2u_004    0.7437     p01_stationary_L0=0.8965, p04_increasing_trend_L0=0.8726, p07_seasonal_L4=0.5335, p08_changepoint_L0=0.8701, p06_variance_L4=0.5458
+5     candidate_h2u_005    0.7306     p01_stationary_L0=0.8979, p04_increasing_trend_L0=0.8029, p07_seasonal_L4=0.5381, p08_changepoint_L0=0.8681, p06_variance_L4=0.5461
+6     candidate_h2u_006    0.7151     p01_stationary_L0=0.9011, p04_increasing_trend_L0=0.7281, p07_seasonal_L4=0.5317, p08_changepoint_L0=0.8692, p06_variance_L4=0.5454
+7     candidate_h2u_003    0.7129     p01_stationary_L0=0.9161, p04_increasing_trend_L0=0.7253, p07_seasonal_L4=0.5278, p08_changepoint_L0=0.8638, p06_variance_L4=0.5315
+
+======================================================================
+DETAILED TRACE: candidate_h2u_002 (mean NR = 0.7457)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5334)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4371.8
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        This is the first period with no prior memory. The pipeline is critically underfilled (IP=0, B=611), so ordering is urge
+2    114      162      162      0        0.0        Memory buffer is empty (first period). Analyst shows pipeline critically underfilled (IP=167 vs B=608), demand trend is 
+3    86       158      158      0        0.0        The memory buffer is empty (no prior insight). The Analyst reports pipeline UNDERFILLED with IP=329 vs B=606, a large ga
+4    118      102      102      0        0.0        Memory insight from previous period is empty (no sustained pattern). Analyst says pipeline is ADEQUATE (IP=487, B=590, r
+5    121      3        3        121      438.0      Memory insight from last period is empty (no sustained pattern). Analyst confirms pipeline is ADEQUATE (IP=589, B=593, r
+6    75       125      125      75       167.0      The memory buffer is empty (no sustained pattern from last period). The Analyst reports pipeline status ADEQUATE (IP=471
+7    74       61       61       74       79.0       The memory buffer is empty (no sustained pattern from last period). The Analyst reports pipeline status ADEQUATE (IP=521
+8    119      55       61       119      276.0      Memory from last period is empty (no sustained pattern noted). Analyst shows pipeline ADEQUATE with IP=508, B=570, room 
+9    102      129      129      102      307.0      Memory from last period noted a down trend with 3 evidence periods, which is confirmed by the Analyst's trend_dir=down a
+10   140      90       100      140      474.0      Memory from last period is empty (no sustained pattern noted). Analyst says pipeline is ADEQUATE (IP=471, B=571, ratio=0
+11   78       149.52219773857607 149      78       243.0      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current period demand o
+12   158      79       82       124      496.0      Memory from last period noted a possible uptrend, but current period demand is 78, which is below the recent average and
+13   150      154.76432223171244 147      129      516.0      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this period's demand of 158 (highest in hist
+14   124      134      134      90       360.0      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but current period shows demand of 150, whic
+15   99       93       93       99       345.5      Memory from last period: 'volatile' pattern noted. This period, demand is 124, which is within the recent range (78-158)
+16   58       94       94       58       160.5      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but current period shows demand 99, down fro
+17   103      0        49       103      288.7      Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand 
+18   46       135      150      46       -27.3      Memory from last period noted a down trend, which is confirmed by Analyst: trend=down with 3 evidence periods, R²=0.237 
+19   101      0        51       101      200.7      Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~15%' — this is confirmed by current data: demand 
+20   69       150      150      69       47.7       Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~15%' — but current period shows demand 101, which
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 12 ---
+  Demand: 158, OR rec: 82, LLM ordered: 79
+  Full Rationale:
+  Memory from last period noted a possible uptrend, but current period demand is 78, which is below the recent average and breaks the pattern. The Analyst confirms a down-trend with 3 periods of evidence, though R² is low (0.175), indicating noise. The pipeline is ADEQUATE (IP=493, B=575, ratio=0.86), leaving room to order 82 units. OR recommends 82, but the OR trust is low due to the detected down-trend, with a suggested bias of +3 (+3.7%). However, the demand history shows high variability (CV=0
+
+--- Period 13 ---
+  Demand: 150, OR rec: 147, LLM ordered: 154.76432223171244
+  Full Rationale:
+  Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this period's demand of 158 (highest in history) confirms the uptrend, strengthening the insight. Analyst confirms trend=up with 3 evidence periods, but R²=0.143 is low (volatile), so trend is noisy. OR trust is low due to trend and underestimation bias of +9.5% (suggested +14 units). Pipeline is ADEQUATE (IP=448, B=595, ratio=0.75), room to order 147, cap=155. OR recommends 147. Given the strong demand surge (158) and t
+
+--- Period 17 ---
+  Demand: 103, OR rec: 49, LLM ordered: 0
+  Full Rationale:
+  Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand has been declining sharply (slope -30.1/p, R²=0.985, 4 evidence periods). The Analyst confirms a strong downward trend with high R² and low trust in OR due to i.i.d. violation. Pipeline is ADEQUATE (IP=547, B=597, ratio=0.92), with room to order only 49 units. OR recommends q_or=49, but given the sustained downtrend, demand is likely to continue falling. The recent demand of 58
+
+--- Period 18 ---
+  Demand: 46, OR rec: 150, LLM ordered: 135
+  Full Rationale:
+  Memory from last period noted a down trend, which is confirmed by Analyst: trend=down with 3 evidence periods, R²=0.237 (low but consistent direction). OR trust is low due to i.i.d. violation and equal-weight bias causing overestimation (gap=-11.1%). OR recommends 150, but Analyst suggests bias of -16 (10.7% reduction). Pipeline is ADEQUATE with room to order 150. Given the down trend and recent demand averaging 96 vs historical 108, I reduce OR by about 10% to 135. However, demand is volatile (
+
+--- Period 19 ---
+  Demand: 101, OR rec: 51, LLM ordered: 0
+  Full Rationale:
+  Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~15%' — this is confirmed by current data: demand continues low (46, 103, 58, 99, 124) with a 3-period down trend. Analyst confirms trend=down, R²=0.262 (weak but consistent), gap=-27.4%, trust=low due to i.i.d. violation. OR recommends q=51, but this is based on all-history mean (105.3) which is too high given recent demand (76.5 avg). The Analyst suggests bias -13 (-25.5%), meaning OR overestimates. However, pipeline is ADEQ
+
+### Instance: p06_variance_L4 (NR = 0.5577)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4586.7
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141.89556059321282 141      0        0.0        This is the first period with no prior memory. The pipeline is critically underfilled (IP=0, B=541), and the OR recommen
+2    155      142.7822216182063 142      0        0.0        Memory is empty (first period). Analyst shows pipeline critically underfilled (IP=142 vs B=555, ratio=0.26), demand tren
+3    128      159      159      0        0.0        Memory from last period noted an uptrend with OR lagging. This period, demand spiked to 155, confirming the trend. Analy
+4    117      159      159      0        0.0        Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand tr
+5    98       9        9        98       348.1      Memory from last period noted a sustained uptrend, but current demand data shows a sharp drop to 117, and the Analyst no
+6    98       88       88       98       303.3      The memory insight from last period is not provided, but the current period's data shows a clear down-trend with 4 perio
+7    47       73       91       47       -12.7      Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~15%' — this is confirmed by current data: demand 
+8    83       0        48       83       55.3       Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~15%' — this is confirmed by current period demand
+9    123      97       121      123      329.3      Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~20%' — this is confirmed by current data: recent 
+10   92       128      151      92       209.3      Memory from last period noted volatile demand with OR lagging. This period, Analyst confirms trend=up with 3 evidence pe
+11   119      100      112      119      363.3      Memory from last period noted a volatile pattern, but this period's demand of 92 is below the recent average, and the An
+12   84       134      134      84       307.3      Memory insight from last period was 'Demand up 4 of last 5 periods, OR lagging ~15%', but current period shows demand of
+13   102      78       78       102      384.3      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but current period demand is 84, which is be
+14   130      100      100      130      498.3      Memory insight from last period was 'down' trend, but current period shows flat trend with no evidence periods and low R
+15   123      137      137      121.67778221141913 486.7      Memory insight from last period was empty (no sustained pattern). Analyst confirms trend is flat with low R² (0.107) and
+16   139      147      126      134.0    536.0      Memory from last period (empty) is not contradicted. Analyst confirms trend up with 3 evidence periods and high R²=0.803
+17   107      139      121      78.0     312.0      Memory from last period (P16) noted 'Demand up 4 of last 5 periods, OR lagging ~15%'. This period's data confirms the up
+18   78       59       59       78       290.0      Memory from last period noted a possible uptrend, but current period demand dropped to 107, breaking the pattern. Analys
+19   66       60       72       66       171.0      Memory from last period noted a down-trend with 3 evidence periods, which is confirmed by the current Analyst: trend=dow
+20   49       57       71       49       5.0        Memory from last period: 'Demand down 3 of last 4 periods, OR lagging high' — this is confirmed by current period's dema
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 11 ---
+  Demand: 119, OR rec: 112, LLM ordered: 100
+  Full Rationale:
+  Memory from last period noted a volatile pattern, but this period's demand of 92 is below the recent average, and the Analyst shows a 3-period uptrend with low R² (0.522) and high CV (0.363), indicating noise rather than a sustained trend. The OR trust audit flags i.i.d. violation due to the trend, but the gap is -16.5% (recent demand below historical mean), suggesting OR may overestimate. Pipeline is ADEQUATE with IP=457 vs B=569, room to order 112. OR recommends 112, but given the volatile his
+
+--- Period 16 ---
+  Demand: 139, OR rec: 126, LLM ordered: 147
+  Full Rationale:
+  Memory from last period (empty) is not contradicted. Analyst confirms trend up with 3 evidence periods and high R²=0.803, indicating sustained upward movement. OR trust is low due to i.i.d. violation from trend. OR recommends 126, but the trend suggests demand is rising above historical mean (gap +4.1%). The pipeline is adequate (IP=449, B=575, room=126), but with demand trending up, ordering the full OR amount risks understocking if the trend continues. Given p/h=4, stockouts are costly. I adju
+
+--- Period 17 ---
+  Demand: 107, OR rec: 121, LLM ordered: 139
+  Full Rationale:
+  Memory from last period (P16) noted 'Demand up 4 of last 5 periods, OR lagging ~15%'. This period's data confirms the uptrend: Analyst shows trend_dir=up with 3 evidence periods, R²=0.726, gap=+15.4%, and OR trust is low due to i.i.d. violation. The pipeline is ADEQUATE (IP=462, B=584, ratio=0.79), with room to order 121 units up to cap 150. OR recommends q_or=121, but the Analyst suggests bias of +18 (+14.9%) to compensate for the trend. Given the strong trend signal and high cost of stockouts 
+
+--- Period 19 ---
+  Demand: 66, OR rec: 72, LLM ordered: 60
+  Full Rationale:
+  Memory from last period noted a down-trend with 3 evidence periods, which is confirmed by the current Analyst: trend=down, slope=-16.7/p, R²=0.687 (high), evidence=3p. The OR trust audit flags low trust due to i.i.d. violation (down-trend). OR recommends q=72, but the Analyst suggests a bias of +4 (+5.6%), which is small. However, the pipeline is ADEQUATE (IP=504, B=577, ratio=0.87), meaning there is room to order up to 72 without overfilling. The recent demand drop (78 in P18) is part of the do
+
+--- Period 20 ---
+  Demand: 49, OR rec: 71, LLM ordered: 57
+  Full Rationale:
+  Memory from last period: 'Demand down 3 of last 4 periods, OR lagging high' — this is confirmed by current period's demand of 66, which is the lowest in the recent series. The Analyst confirms a strong downward trend (4 evidence periods, R²=0.966, slope -24.8/p), and OR trust is low with suggested bias of -4 (-5.6%). Pipeline is ADEQUATE (IP=498, B=570, ratio=0.87), so there is room to order 71 according to OR. However, given the sustained downward trend, ordering the full OR amount of 71 would 
+
+======================================================================
+DETAILED TRACE: candidate_h2u_003 (mean NR = 0.7129)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5278)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4325.9
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        Step 0: |gap_pct|=7.5% (<15%) → LOW reversion risk. CV=0.301 (>0.3) → escalate to MODERATE. Regime shift exception: evid
+2    114      162      162      0        0.0        Step 0: |gap_pct| = 3.0% (LOW reversion risk). CV = 0.302 > 0.3, escalate one tier to MODERATE. Regime shift exception: 
+3    86       158      158      0        0.0        Step 0: |gap_pct| = 7.7% (< 15%) → LOW reversion risk. CV = 0.167 (< 0.3) → no escalation. Regime shift exception: evide
+4    118      102      102      0        0.0        Step 0: |gap_pct| = 8.6% (< 15%) → LOW reversion risk. CV = 0.191 (< 0.3) → no escalation. Regime shift exception: evide
+5    121      3        3        121      438.0      Step 0: |gap_pct| = 0.4% (< 15%), so reversion risk tier is LOW. CV = 0.137 (< 0.3), no escalation. Regime shift excepti
+6    75       125      125      75       167.0      Step 0: |gap_pct| = 0.0% (LOW reversion risk). CV=0.147 < 0.3, no escalation. Regime shift exception: no (evidence_perio
+7    74       61       61       74       79.0       Step 0: |gap_pct| = 6.1% (<15%), so reversion risk is LOW. CV=0.230 (<0.3), no escalation. Regime shift exception: no (e
+8    119      67       61       119      276.0      Step 0: |gap_pct| = 6.6% (<15%) → LOW reversion risk. CV=0.268 (<0.3) so no escalation. Regime shift exception: evidence
+9    102      117      117      102      307.0      Step 0: |gap_pct| = 7.4% (<15%) → LOW reversion risk. CV=0.270 (<0.3) → no escalation. Regime shift exception: evidence_
+10   140      90       100      140      474.0      Step 0: |gap_pct| = 11.7% (< 15%), so reversion risk is LOW. CV = 0.237 (< 0.3), no escalation. Regime shift exception: 
+11   78       149.52219773857607 149      78       243.0      Step 0: |gap_pct| = 1.5% (LOW reversion risk). CV=0.257 < 0.3, no escalation. Regime shift exception: evidence_periods=3
+12   158      90       82       136      544.0      Step 0: |gap_pct| = 4.2% (LOW reversion risk). CV=0.239 < 0.3, no escalation. Regime shift exception: evidence_periods=3
+13   150      152      148      117      468.0      Step 0: |gap_pct|=10.2% (<15%) → LOW reversion risk. CV=0.303 (>0.3) escalates to MODERATE. Regime shift exception: evid
+14   124      139      126      90       360.0      Step 0: |gap_pct| = 18.8% (MODERATE reversion risk). CV = 0.277 (< 0.3, no escalation). Regime shift exception: evidence
+15   99       100      80       99       345.5      Step 0: |gap_pct|=14.4% (<15%) → LOW reversion risk. CV=0.283 (<0.3) → no escalation. Regime shift exception: evidence_p
+16   58       67       74       58       149.5      Step 0: |gap_pct| = 19.8% (MODERATE reversion risk). CV = 0.202 (low, no escalation). Regime shift exception: evidence_p
+17   103      48       56       103      280.5      Step 0: |gap_pct| = 0.5% (<15%), so reversion risk is LOW. CV=0.363 (>0.3), escalate one tier to MODERATE. Regime shift 
+18   46       90       108      46       -40.5      Step 0: |gap_pct| = 11.1% (< 15%) → LOW reversion risk. CV = 0.288 (< 0.3) → no escalation. Regime shift exception: evid
+19   101      63       55       101      180.5      Step 0: |gap_pct| = 27.4% (MODERATE reversion risk). CV = 0.376 > 0.3, escalate to HIGH reversion risk. Regime shift exc
+20   69       98       91       69       54.5       Step 0: |gap_pct| = 26.8% (MODERATE reversion risk). CV = 0.380 > 0.3, escalate to HIGH reversion risk. Regime shift exc
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 16 ---
+  Demand: 58, OR rec: 74, LLM ordered: 67
+  Full Rationale:
+  Step 0: |gap_pct| = 19.8% (MODERATE reversion risk). CV = 0.202 (low, no escalation). Regime shift exception: evidence_periods=4 (<6), R²=0.958 (>0.8) but not all conditions met (carry-over insight from last period predicted down and was confirmed? Last period I noted 'down trend confirmed, but gap is moderate, so scale override by 0.5x' — the direction was down and confirmed, but evidence_periods=4 <6, so no exception). Memory: last period I noted down trend with moderate gap, scaled override b
+
+--- Period 17 ---
+  Demand: 103, OR rec: 56, LLM ordered: 48
+  Full Rationale:
+  Step 0: |gap_pct| = 0.5% (<15%), so reversion risk is LOW. CV=0.363 (>0.3), escalate one tier to MODERATE. Regime shift exception: evidence_periods=4 (<6), R²=0.985 (>0.8) but not all conditions met, so no. Memory: last period noted down-trend with high R², confirmed by continued drop. Analyst: trend down, 4p evidence, R²=0.985, OR trust low due to i.i.d. violation. OR=56. Given strong down-trend, demand likely continues below mean, so I want to order less than OR to avoid overstock. Unscaled ov
+
+--- Period 18 ---
+  Demand: 46, OR rec: 108, LLM ordered: 90
+  Full Rationale:
+  Step 0: |gap_pct| = 11.1% (< 15%) → LOW reversion risk. CV = 0.288 (< 0.3) → no escalation. Regime shift exception: evidence_periods = 3 (< 6), R² = 0.237 (< 0.8), no carry-over insight from last period predicted same direction → no exception. Memory: last period I noted 'downward trend may be temporary, but OR is overestimating; ordered 48, which was below OR 56, and demand was 103, sold 103, reward +280. The trend seems to be reverting?'. Analyst: trend down, 3p evidence, R² low (0.237), volat
+
+--- Period 19 ---
+  Demand: 101, OR rec: 55, LLM ordered: 63
+  Full Rationale:
+  Step 0: |gap_pct| = 27.4% (MODERATE reversion risk). CV = 0.376 > 0.3, escalate to HIGH reversion risk. Regime shift exception: evidence_periods=3 (<6), R²=0.262 (<0.8), no carry-over insight from last period predicted same direction, so no exception. Memory: last period noted 'down trend likely to revert' but no strong signal. Analyst: down trend with low trust, OR overestimates demand. OR=55. My unscaled opinion: demand is dropping, but reversion risk is high, so I want to order below OR. With
+
+--- Period 20 ---
+  Demand: 69, OR rec: 91, LLM ordered: 98
+  Full Rationale:
+  Step 0: |gap_pct| = 26.8% (MODERATE reversion risk). CV = 0.380 > 0.3, escalate to HIGH reversion risk. Regime shift exception: evidence_periods=3 (<6), R²=0.101 (<0.8), no carry-over insight from last period predicted same direction (last period had down trend, now up), so no exception. Memory: last period noted volatile demand and low trust in OR. Analyst: trend up but weak (R²=0.101), volatile, OR trust low with bias -24. OR=91. My unscaled opinion: given uptrend and low trust in OR, I want t
+
+### Instance: p06_variance_L4 (NR = 0.5315)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4371.3
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141      141      0        0.0        Step 0: |gap_pct| = 6.1% (< 15%) → LOW reversion risk. CV = 0.288 (< 0.3) → no escalation. Regime shift exception: evide
+2    155      142.7822216182063 142      0        0.0        Step 0: |gap_pct| = 9.9% (<15%) → LOW reversion risk. CV=0.279 (<0.3) so no escalation. Regime shift exception: evidence
+3    128      159      159      0        0.0        Step 0: |gap_pct| = 5.6% (<15%) → LOW reversion risk. CV=0.262 (<0.3) → no escalation. Regime shift exception: evidence_
+4    117      159      159      0        0.0        Step 0: |gap_pct|=13.5% (<15%) → LOW reversion risk. CV=0.168 (<0.3) so no escalation. Regime shift exception: evidence_
+5    98       5        10       98       349.0      Step 0: |gap_pct| = 15.5% (MODERATE reversion risk). CV = 0.137 (<0.3, no escalation). Regime shift exception: evidence_
+6    98       104      93       98       304.2      Step 0: |gap_pct|=12.5% (<15%) → LOW reversion risk. CV=0.191 (<0.3) so no escalation. Regime shift exception: evidence_
+7    47       60       80       47       -11.8      Step 0: |gap_pct| = 0.6% (LOW reversion risk). CV = 0.135 (<0.3), no escalation. Regime shift exception: no (evidence_pe
+8    83       75       50       83       56.2       Step 0: |gap_pct| = 13.7% (<15%) → LOW reversion risk. CV=0.334 (>0.3) → escalate one tier to MODERATE. Regime shift exc
+9    123      63       48       123      334.2      Step 0: |gap_pct| = 20.6% (MODERATE reversion risk). CV = 0.295 < 0.3, no escalation. Regime shift exception: evidence_p
+10   92       120      114      92       198.2      Step 0: |gap_pct| = 15.7% (MODERATE reversion risk). CV = 0.362 > 0.3, escalate to HIGH reversion risk. Regime shift exc
+11   119      86       81       119      365.2      Step 0: |gap_pct| = 16.5% (MODERATE reversion risk). CV = 0.363 > 0.3, escalate to HIGH reversion risk. Regime shift exc
+12   84       117      117      84       234.2      Step 0: |gap_pct| = 0.1% (LOW reversion risk). CV=0.189 < 0.3, no escalation. Regime shift exception: no (evidence_perio
+13   102      70       78       102      345.2      Step 0: |gap_pct| = 1.3% (LOW reversion risk). CV=0.186 < 0.3, no escalation. Regime shift exception: evidence_periods=3
+14   130      108      108      130      467.2      Step 0: |gap_pct| = 3.7% (<15%) → LOW reversion risk. CV=0.152 (<0.3) so no escalation. Regime shift exception: evidence
+15   123      137      137      123      476.2      Step 0: |gap_pct| = 4.1% (<15%), so reversion risk is LOW. CV = 0.185 (<0.3), no escalation. Regime shift exception: evi
+16   139      147      127      132.78222161820634 531.1      Step 0: |gap_pct| = 4.1% (<15%) → LOW reversion risk. CV=0.190 (<0.3) → no escalation. Regime shift exception: evidence_
+17   107      134      121      70.0     280.0      Step 0: |gap_pct| = 15.4% (MODERATE reversion risk). CV = 0.128 (low, no escalation). Regime shift exception: evidence_p
+18   78       62       56       78       282.0      Step 0: |gap_pct| = 16.6% (MODERATE reversion risk). CV = 0.108 (low, no escalation). Regime shift exception: evidence_p
+19   66       60       66       66       163.0      Step 0: |gap_pct| = 5.7% (<15%) → LOW reversion risk. CV=0.233 (<0.3) so no escalation. Regime shift exception: evidence
+20   49       58       65       49       -3.0       Step 0: |gap_pct| = 6.3% (<15%) → LOW reversion risk. CV=0.334 (>0.3) → escalate one tier to MODERATE. Regime shift exce
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 16 ---
+  Demand: 139, OR rec: 127, LLM ordered: 147
+  Full Rationale:
+  Step 0: |gap_pct| = 4.1% (<15%) → LOW reversion risk. CV=0.190 (<0.3) → no escalation. Regime shift exception: evidence_periods=3 (<6), R²=0.803 (>0.8 but insufficient evidence periods), carry-over insight from last period predicted same direction? Last period's carry-over insight was empty, so no confirmation. Exception not met. Memory: last period I noted 'Demand continues strong, uptrend building. OR may be lagging.' This period, demand remains high (123) and trend is up with 3 periods eviden
+
+--- Period 17 ---
+  Demand: 107, OR rec: 121, LLM ordered: 134
+  Full Rationale:
+  Step 0: |gap_pct| = 15.4% (MODERATE reversion risk). CV = 0.128 (low, no escalation). Regime shift exception: evidence_periods=3 (<6), R²=0.726 (<0.8), no carry-over insight confirming direction from last period (last period's insight was empty). So no exception. Memory: last period I noted 'Demand continues upward trend; OR underestimates. Override to 147.' That was confirmed (demand 139, sold 132.78). Analyst: trend up, gap +15.4%, OR trust low, bias +18. OR=121. My unscaled opinion: demand is
+
+--- Period 18 ---
+  Demand: 78, OR rec: 56, LLM ordered: 62
+  Full Rationale:
+  Step 0: |gap_pct| = 16.6% (MODERATE reversion risk). CV = 0.108 (low, no escalation). Regime shift exception: evidence_periods=3 (<6), R²=0.256 (<0.8), no carry-over insight from last period predicted same direction (last period's insight was about uptrend, but now trend is down, so not confirmed). Exception does not apply. Memory: last period noted uptrend but now trend reversed to down; analyst flags down-trend with 3 periods evidence and OR underestimates demand by +16.1%. OR=56. Pipeline ADE
+
+--- Period 19 ---
+  Demand: 66, OR rec: 66, LLM ordered: 60
+  Full Rationale:
+  Step 0: |gap_pct| = 5.7% (<15%) → LOW reversion risk. CV=0.233 (<0.3) so no escalation. Regime shift exception: evidence_periods=3 (<6), R²=0.687 (<0.8), no carry-over insight from last period predicted same direction (last period had down trend, but no confirmation of regime shift) → no exception. Memory: last period noted down trend with 3p evidence, but demand dropped sharply to 78, which may be noise. Analyst: trend down, OR trust low with bias +3, pipeline ADEQUATE. OR=66. Given low reversi
+
+--- Period 20 ---
+  Demand: 49, OR rec: 65, LLM ordered: 58
+  Full Rationale:
+  Step 0: |gap_pct| = 6.3% (<15%) → LOW reversion risk. CV=0.334 (>0.3) → escalate one tier to MODERATE. Regime shift exception: evidence_periods=4 (<6), R²=0.966 (>0.8) but not all conditions met (carry-over insight from last period predicted down and was confirmed, but evidence_periods <6), so exception does not apply. Memory: last period noted sustained down trend, confirmed by analyst. Analyst: trend down, 4p evidence, R²=0.966, OR trust low with bias -4. OR=65. Pipeline ADEQUATE (IP=504, B=57
+
+======================================================================
+DETAILED TRACE: candidate_h2u_004 (mean NR = 0.7437)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5335)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4372.9
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        This is the first period with no prior memory. The pipeline is critically underfilled (IP=0, B=611), so ordering up to c
+2    114      162      162      0        0.0        Memory buffer is empty (first period). Analyst shows pipeline critically underfilled (IP=167, B=608), trend is down with
+3    86       158      158      0        0.0        Memory insight from last period is empty, so no pattern to confirm. Analyst says pipeline is UNDERFILLED (IP=329, B=606,
+4    118      98       102      0        0.0        Memory from last period: 'flat' trend, but OR trust was high. This period, Analyst says trend is flat with low R², but O
+5    121      7        7        121      438.0      Memory insight from last period was empty (no sustained pattern). Analyst confirms trend is flat with low R² (0.020) and
+6    75       125      125      75       167.0      Memory insight from last period was empty (no sustained pattern). Analyst confirms trend is flat with low R² (0.181) and
+7    74       61       61       74       79.0       Memory insight from last period was empty (no sustained pattern). Analyst confirms trend is flat with low R² and high tr
+8    119      57       61       119      280.0      Memory from last period was empty (no sustained pattern). Analyst shows pipeline ADEQUATE (IP=508, B=570, room=61), dema
+9    102      120      127      102      307.0      Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~15%' — but this period demand spiked to 119, brea
+10   140      101      107      140      474.0      Memory from last period: 'Demand down 2 of last 3 periods, OR lagging ~6%' — but this period demand is 102, which is clo
+11   78       149      149      78       243.0      Memory from last period: 'Demand up 3 of last 4 periods, OR lagging ~6%' — this is confirmed by current period's demand 
+12   158      79       79       126      504.0      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but this period's demand is 78, which is bel
+13   150      154.76432223171244 146      120      480.0      Memory from last period noted a down trend, but current period shows an up trend with 3 evidence periods and a positive 
+14   124      148      124      101      404.0      Memory from last period noted 'up' trend, but current period shows volatile trend with low R² (0.152) and only 0 evidenc
+15   99       89       79       99       346.0      Memory from last period noted volatile demand, which is confirmed by the Analyst's trend analysis (CV=0.283, R²=0.217, t
+16   58       82       85       58       161.0      Memory from last period noted 'volatile' pattern, but this period's demand of 99 is lower than the recent average of 132
+17   103      0        52       103      289.2      Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand 
+18   46       130      152      46       -40.8      Memory from last period noted a down trend, which is confirmed by the Analyst: trend_dir=down with 3 evidence periods, R
+19   101      0        59       101      191.2      Memory from last period noted a sustained downtrend, which is confirmed by the Analyst: trend=down with 3 evidence perio
+20   69       154      154      69       50.2       Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~15%' — but current period shows demand of 101, wh
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 15 ---
+  Demand: 99, OR rec: 79, LLM ordered: 89
+  Full Rationale:
+  Memory from last period noted volatile demand, which is confirmed by the Analyst's trend analysis (CV=0.283, R²=0.217, trend=volatile). The OR trust audit is low due to non-i.i.d. violations, with a suggested bias of +11 (+13.9%) because OR's equal-weighting underestimates demand given the recent upward gap (+14.4%). The pipeline is ADEQUATE (IP=531, B=611, ratio=0.87), leaving room to order up to 79 units. However, the recent demand average (127.5) is significantly above the historical mean (11
+
+--- Period 16 ---
+  Demand: 58, OR rec: 85, LLM ordered: 82
+  Full Rationale:
+  Memory from last period noted 'volatile' pattern, but this period's demand of 99 is lower than the recent average of 132.8, and the Analyst confirms a down-trend with 4 evidence periods and high R²=0.958. The OR trust audit flags i.i.d. violation due to trend and suggests OR underestimates demand by ~19%, but the trend is actually downward, so OR's historical mean (110.8) is above the recent downward trajectory. The pipeline is ADEQUATE with IP=521 vs B=606, leaving room to order 85. Given the s
+
+--- Period 17 ---
+  Demand: 103, OR rec: 52, LLM ordered: 0
+  Full Rationale:
+  Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand dropped to 58, trend is down with 4 evidence periods and R²=0.985, and the Analyst flags i.i.d. violation due to down-trend. The OR formula uses all-history mean (108.3) which is far above recent demand (5p-avg=107.8, but last 4 periods are 150,124,99,58 with average 107.75, and the trend slope is -30.1 per period). The OR recommends q=52, but given the strong downward trend, o
+
+--- Period 18 ---
+  Demand: 46, OR rec: 152, LLM ordered: 130
+  Full Rationale:
+  Memory from last period noted a down trend, which is confirmed by the Analyst: trend_dir=down with 3 evidence periods, R²=0.237 (low but consistent), and a gap of -11.1%. The OR Trust Audit flags i.i.d. violation due to the down trend and suggests OR overestimates demand by about -10.5% (bias -16). The pipeline is ADEQUATE (IP=442, B=594, ratio=0.74), so there is room to order but not critically underfilled. The OR recommends q_or=152, but given the sustained down trend and the Analyst's bias su
+
+--- Period 19 ---
+  Demand: 101, OR rec: 59, LLM ordered: 0
+  Full Rationale:
+  Memory from last period noted a sustained downtrend, which is confirmed by the Analyst: trend=down with 3 evidence periods, R²=0.262 (low but consistent direction), and a large negative gap of -27.4%. The OR Trust Audit flags low trust due to i.i.d. violation and suggests OR overestimates demand by about 27%. The pipeline is ADEQUATE (IP=526, B=585), leaving room to order 59 units. However, the recent demand average of 76.5 is well below the historical mean of 105.3, and the last three periods (
+
+### Instance: p06_variance_L4 (NR = 0.5458)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4489.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141.89556059321282 141      0        0.0        This is the first period with no prior memory. The pipeline is critically underfilled (IP=0, B=541), so ordering up to c
+2    155      142.7822216182063 142      0        0.0        Memory is empty (first period). Analyst shows pipeline critically underfilled (IP=142 vs B=555), demand trending up with
+3    128      159      159      0        0.0        Memory from last period noted a possible uptrend, and this period's demand of 155 confirms it strongly. The Analyst repo
+4    117      159      159      0        0.0        Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current period: demand 
+5    98       9        9        98       348.1      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but current period shows demand of 117, whic
+6    98       80       88       98       303.3      Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~15%' — but this period's demand is 98, continuing
+7    47       90       99       47       -12.7      Memory from last period noted a down trend, which is confirmed by Analyst: trend=down with 3 evidence periods and high R
+8    83       31       39       83       55.3       Memory from last period noted a down trend with 3 evidence periods and high R², which is confirmed this period: trend is
+9    123      73       81       123      329.3      Memory from last period (empty) provides no carry-over insight. Analyst shows pipeline ADEQUATE (IP=487, B=569, ratio=0.
+10   92       128      137      92       217.3      Memory from last period noted 'volatile' demand, but this period shows a clear uptrend with 3 consecutive periods of evi
+11   119      110      96       119      354.3      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: trend is 
+12   84       108      108      84       267.3      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but current period shows demand of 119, whic
+13   102      78       78       102      368.3      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but this period's demand (84) is down sharpl
+14   130      100      100      130      482.3      Memory insight from last period was empty, and current period shows no sustained pattern. Analyst reports pipeline ADEQU
+15   123      137      137      123      467.3      Memory from last period was empty (no sustained pattern). Analyst says pipeline is ADEQUATE (IP=434, B=571, ratio=0.76),
+16   139      147      127      132.67778221141913 530.7      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: trend is 
+17   107      135      121      78.0     312.0      Memory from last period noted an uptrend, which is confirmed by Analyst: trend=up, 3 evidence periods, R²=0.726, gap=+15
+18   78       70       63       78       290.0      Memory from last period noted 'up' trend with OR lagging, but current period shows demand dropped to 107 (down from 139)
+19   66       58       65       66       171.0      Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~11%' — this is confirmed by current period's dema
+20   49       59       66       49       5.0        Memory from last period: 'Demand down 2 consecutive periods, OR lagging ~11%' — this is confirmed by period 19 demand of
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 16 ---
+  Demand: 139, OR rec: 127, LLM ordered: 147
+  Full Rationale:
+  Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: trend is up with 3 evidence periods, R²=0.803, and recent 5p-avg (109.8) is above d_bar (105.4). Analyst says trust=low due to up-trend, suggesting OR underestimates. Pipeline is ADEQUATE (IP=448, B=575, ratio=0.78), so there is room to order up to 127. OR recommends 127, but given the sustained uptrend and the fact that stockouts are more costly (p/h=4), I should order more to avoid po
+
+--- Period 17 ---
+  Demand: 107, OR rec: 121, LLM ordered: 135
+  Full Rationale:
+  Memory from last period noted an uptrend, which is confirmed by Analyst: trend=up, 3 evidence periods, R²=0.726, gap=+15.4%. OR trust is low due to i.i.d. violation, and OR underestimates demand by ~15%. Pipeline is ADEQUATE with IP=462, B=584, room=121. OR recommends 121, but given the strong uptrend and low trust, I should order more to avoid stockouts. The Analyst suggests a bias of +18, but the trend slope is +10.4/period, and with L=4, the cumulative increase is ~42. I'll order cap=150 to b
+
+--- Period 18 ---
+  Demand: 78, OR rec: 63, LLM ordered: 70
+  Full Rationale:
+  Memory from last period noted 'up' trend with OR lagging, but current period shows demand dropped to 107 (down from 139), and Analyst now flags a down-trend with 3 periods evidence (though R² is low at 0.256, indicating noise). The pipeline is ADEQUATE (IP=519, B=583, room=63). OR recommends 63, but the Analyst suggests a bias of +10 due to underestimation. However, the recent demand drop contradicts the earlier uptrend, and the down-trend signal is weak (low R²). The OR trust is low due to i.i.
+
+--- Period 19 ---
+  Demand: 66, OR rec: 65, LLM ordered: 58
+  Full Rationale:
+  Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~11%' — this is confirmed by current period's demand of 78, which is below the historical mean and continues the downtrend. Analyst shows trend=down with 3 evidence periods, R²=0.687 (close to 0.7), and trust=low due to i.i.d. violation. The pipeline is ADEQUATE (IP=511, B=577, ratio=0.89), with room to order 65. OR recommends 65, but the Analyst suggests a bias of +3 (+4.6%), which is small. However, the downtrend is strong a
+
+--- Period 20 ---
+  Demand: 49, OR rec: 66, LLM ordered: 59
+  Full Rationale:
+  Memory from last period: 'Demand down 2 consecutive periods, OR lagging ~11%' — this is confirmed by period 19 demand of 66, continuing the downtrend. Analyst confirms trend=down with 4 evidence periods, high R²=0.966, and OR trust=low with suggested bias of -4 (-6.1%). Pipeline is ADEQUATE (IP=503, B=570, ratio=0.88), room to order 66. OR recommends q=66. Given the strong downtrend and OR's lag, I should order less than OR to avoid excess inventory. The suggested bias of -4 is modest, but the t

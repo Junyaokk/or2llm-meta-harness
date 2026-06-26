@@ -1,0 +1,121 @@
+======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_h2u_000    0.7459     p01_stationary_L0=0.8846, p04_increasing_trend_L0=0.8728, p07_seasonal_L4=0.5517, p08_changepoint_L0=0.8760, p06_variance_L4=0.5444
+
+======================================================================
+DETAILED TRACE: candidate_h2u_000 (mean NR = 0.7459)
+======================================================================
+
+### Instance: p06_variance_L4 (NR = 0.5444)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4477.1
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141      141      0        0.0        STEP 1: pipe_status is UNDERFILLED with IP=0, B=541, ratio=0.00, indicating critically low pipeline. trend_dir is volati
+2    155      142.7822216182063 142      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=141, B=555, ratio=0.25), indicating high risk of stockout. Trend is up with 4 period
+3    128      159      159      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=284, B=603, ratio=0.47), indicating room to order. Trend is up with 4 periods of evi
+4    117      159      159      0        0.0        STEP 1: Pipeline is ADEQUATE (IP=443, B=612, ratio=0.72), room to order 169, cap=159. Trend is up with 3 periods evidenc
+5    98       5        10       98       349.0      STEP 1: Pipeline is ADEQUATE (IP=602, B=612, ratio=0.98), room to order only 10 units. Trend is down with 3 periods evid
+6    98       47       93       98       304.2      STEP 1: Pipeline is ADEQUATE (IP=509, B=603, ratio=0.84). Trend is down with 4 periods evidence and R²=0.974, indicating
+7    47       96       137      47       -11.8      STEP 1: Pipe status is ADEQUATE (IP=458, B=595, ratio=0.77). Trend is down with 3 periods evidence (slope=-10.9/p, R²=0.
+8    83       61       71       83       56.2       STEP 1: Pipeline status is ADEQUATE (IP=507, B=578, ratio=0.88), room to order 71. Trend is down with 3 periods evidence
+9    123      66       83       123      334.2      STEP 1: Pipeline is ADEQUATE (IP=485, B=569, ratio=0.85), room to order 83. Trend is volatile with slope -9.6/p, evidenc
+10   92       151      146      92       255.2      STEP 1: pipe_status is ADEQUATE (ratio 0.74), not OVERFILLED, so ordering is possible. Trend is up with 3 periods eviden
+11   119      70       82       119      386.2      STEP 1: Pipeline is ADEQUATE (IP=487, B=569, ratio=0.86), room to order 82. Trend is up with 3 periods evidence, slope +
+12   84       134      134      84       269.2      STEP 1: Pipe status is ADEQUATE (ratio 0.77), not overfilled. Trend is flat with 0 evidence periods, R²=0.253, CV=0.189 
+13   102      62       78       102      377.2      STEP 1: Pipeline is ADEQUATE (IP=488, B=566, ratio=0.86). Trend is down with 3 periods evidence (slope=-9.0/p). OR trust
+14   130      116      116      130      468.2      STEP 1: Pipe status is ADEQUATE (ratio 0.79), not overfilled. Trend is flat with no evidence (0 periods), CV is low (0.1
+15   123      137      137      121.78222161820634 487.1      STEP 1: pipe_status is ADEQUATE (IP=434, B=571, ratio=0.76), room to order 137. Trend is flat with slope +5.1/p but evid
+16   139      147      126      134.0    536.0      STEP 1: Pipeline status is ADEQUATE (IP=449, B=575, ratio=0.78), room to order 126. Trend is up with 3 periods of eviden
+17   107      139      121      62.0     248.0      STEP 1: Pipeline status is ADEQUATE (IP=462, B=584, ratio=0.79), room to order 121. Trend is up with 3 periods evidence,
+18   78       22       43       78       274.0      STEP 1: Pipeline status is ADEQUATE (IP=539, B=583, ratio=0.93), room to order 43. Trend is down with 3 periods evidence
+19   66       47       93       66       155.0      STEP 1: Pipe status is ADEQUATE (IP=483, B=577, ratio=0.84). Trend is down with 3 periods of evidence (slope=-16.7/p, R²
+20   49       84       105      49       -11.0      STEP 1: pipe_status is ADEQUATE, IP=464, B=570, room to order 105. Trend is down with 4 periods evidence, slope -24.8/p,
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 16 ---
+  Demand: 139, OR rec: 126, LLM ordered: 147
+  Full Rationale:
+  STEP 1: Pipeline status is ADEQUATE (IP=449, B=575, ratio=0.78), room to order 126. Trend is up with 3 periods of evidence (slope +14.5/p, R²=0.803). OR trust level is low due to i.i.d. violation (uptrend). Gap_pct is +4.1% (small). STEP 2: Since gap_pct < 15% but trust is low and trend is up with evidence=3, I lean toward OVERRIDE but cautiously. The gap is small, so I adjust moderately. STEP 3: Uptrend with sustained evidence suggests bias above OR. I cap adjustment at +50% of OR (126*0.5=63),
+
+--- Period 17 ---
+  Demand: 107, OR rec: 121, LLM ordered: 139
+  Full Rationale:
+  STEP 1: Pipeline status is ADEQUATE (IP=462, B=584, ratio=0.79), room to order 121. Trend is up with 3 periods evidence, slope +10.4/p, R²=0.726. OR trust level is low due to i.i.d. violation (uptrend) and gap=+15.4% > 8%. No anomaly alerts. STEP 2: gap_pct=15.4% is between 15-20% -> CAUTION zone. However, trust_level is low and trend is up with evidence=3, so I lean toward OVERRIDE but with caution. STEP 3: Uptrend with sustained evidence suggests bias above OR. Suggested bias from audit is +14
+
+--- Period 18 ---
+  Demand: 78, OR rec: 43, LLM ordered: 22
+  Full Rationale:
+  STEP 1: Pipeline status is ADEQUATE (IP=539, B=583, ratio=0.93), room to order 43. Trend is down with 3 periods evidence, slope -5.3/p, R²=0.256. OR trust is low due to i.i.d. violation (down-trend detected). Gap is +16.6% (between 15-20%), so CAUTION zone. STEP 2: Since gap is 16.6% (between 15-20%) and trust is low, I lean toward OR but adjust cautiously. STEP 3: Trend is down, so bias below OR. Suggested bias from audit is +7 (16.3%), but that is for uptrend; for downtrend, I should bias down
+
+--- Period 19 ---
+  Demand: 66, OR rec: 93, LLM ordered: 47
+  Full Rationale:
+  STEP 1: Pipe status is ADEQUATE (IP=483, B=577, ratio=0.84). Trend is down with 3 periods of evidence (slope=-16.7/p, R²=0.687). OR trust is low due to i.i.d. violation (down-trend detected). Gap is +5.7% (small). No alerts. STEP 2: |gap_pct|=5.7% < 15%, but trust is low and trend is down with evidence >=3, so override is warranted. STEP 3: Downward trend with sustained evidence suggests bias below OR. Suggested bias from audit is +5 (upward), but that contradicts the clear downward trend; I wil
+
+--- Period 20 ---
+  Demand: 49, OR rec: 105, LLM ordered: 84
+  Full Rationale:
+  STEP 1: pipe_status is ADEQUATE, IP=464, B=570, room to order 105. Trend is down with 4 periods evidence, slope -24.8/p, R²=0.966, gap_pct=-6.3%. OR trust is low due to i.i.d. violation (down-trend). No anomaly alerts. STEP 2: gap_pct is -6.3% (<15%) but trust is low and trend is clearly down with strong evidence. Since gap is small but trend is strong, I will override cautiously. STEP 3: Downward trend with sustained evidence suggests bias below OR. OR suggests 105. I will adjust downward by 20
+
+### Instance: p07_seasonal_L4 (NR = 0.5517)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4521.8
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      100      167      0        0.0        STEP 1: pipe_status is UNDERFILLED, IP=0, B=611, ratio=0.00, critically low. trend_dir is down with 3 periods evidence, 
+2    114      130      162      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=100, B=608, ratio=0.16), indicating risk of stockout. Trend is down with 3 periods o
+3    86       158      158      0        0.0        STEP 1: pipe_status is UNDERFILLED (IP=230, B=606, ratio=0.38), indicating low pipeline inventory and risk of stockout. 
+4    118      140      153      0        0.0        STEP 1: Pipeline is UNDERFILLED (IP=388, B=590, ratio=0.66), room to order 201, cap=154. Trend is flat with 0 evidence p
+5    121      64       64       100      400.0      STEP 1: Pipeline is ADEQUATE (IP=528, B=593, ratio=0.89), room to order 64. Trend is flat with no evidence of shift (slo
+6    75       104      104      75       245.0      STEP 1: Pipeline status is ADEQUATE (IP=492, B=596, ratio=0.82), room to order 104. Trend is flat with 0 evidence period
+7    74       61       61       74       157.0      STEP 1: pipe_status is ADEQUATE (IP=521, B=582, ratio=0.90), so pipeline is not overfilled. Trend is flat with slope -3.
+8    119      57       61       119      316.0      STEP 1: Pipeline status is ADEQUATE (IP=508, B=570, ratio=0.89), room to order 61. Trend is down with 3 periods evidence
+9    102      118      127      102      286.0      STEP 1: Pipeline is ADEQUATE (ratio 0.78), not overfilled. Trend is down with 3 periods evidence, but R² is very low (0.
+10   140      97       109      140      474.0      STEP 1: Pipe status is ADEQUATE (ratio 0.81), not overfilled. Trend is flat with 0 evidence periods, so no strong direct
+11   78       149.52219773857607 149      78       243.0      STEP 1: Pipe status is ADEQUATE (ratio 0.72), not overfilled. Trend is up with 3 periods evidence, slope +18.1/p, R²=0.7
+12   158      67       84       126      504.0      STEP 1: Pipeline is ADEQUATE (IP=491, B=575, ratio=0.85), room to order 84. Trend is down with 3 periods evidence (slope
+13   150      154.76432223171244 154      118      472.0      STEP 1: Pipeline is ADEQUATE (IP=432, B=595, ratio=0.72), room to order 163, cap=155. Trend is up with 3 periods evidenc
+14   124      153      139      97       388.0      STEP 1: Pipeline status is ADEQUATE (IP=468, B=608, ratio=0.77), room to order 139. Trend is volatile with slope +11 but
+15   99       98       86       99       345.5      STEP 1: Pipeline status is ADEQUATE (IP=524, B=611, ratio=0.86), so pipeline is not overfilled. Trend is volatile with n
+16   58       66       82       58       172.5      STEP 1: Pipe status is ADEQUATE (IP=523, B=606, ratio=0.86), not overfilled. Trend direction is down with 4 periods of e
+17   103      52       65       103      300.7      STEP 1: pipe_status is ADEQUATE (ratio 0.89), not overfilled. Trend is down with 4 periods evidence and R²=0.985, strong
+18   46       101      114      46       -34.3      STEP 1: Pipeline status is ADEQUATE (IP=480, B=594, ratio=0.81), room to order 114. Trend is down with 3 periods evidenc
+19   101      25       49       101      188.7      STEP 1: pipe_status is ADEQUATE, so pipeline is not overfilled. Trend is down with 3 periods evidence, gap is -27.4% (la
+20   69       62       123      69       63.7       STEP 1: Pipe status is ADEQUATE (ratio 0.79), not overfilled. Trend is up with 3 periods evidence, but R² is low (0.101)
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 16 ---
+  Demand: 58, OR rec: 82, LLM ordered: 66
+  Full Rationale:
+  STEP 1: Pipe status is ADEQUATE (IP=523, B=606, ratio=0.86), not overfilled. Trend direction is down with 4 periods of evidence (slope=-20.3/p, R²=0.958). Trust level is low due to i.i.d. violation (down-trend detected). Gap is +19.8% (between 15-20%), so CAUTION zone. STEP 2: Since gap is 19.8% (between 15-20%) and trust is low, I lean toward OR but adjust. The trend is down, so I should bias below OR to avoid overstocking. STEP 3: Downward trend with sustained evidence (4 periods) suggests red
+
+--- Period 17 ---
+  Demand: 103, OR rec: 65, LLM ordered: 52
+  Full Rationale:
+  STEP 1: pipe_status is ADEQUATE (ratio 0.89), not overfilled. Trend is down with 4 periods evidence and R²=0.985, strong downtrend. OR trust is low due to i.i.d. violation (downtrend). Gap is -0.5%, small. STEP 2: Despite small gap, trust is low and trend is strong with evidence >=3, so override. STEP 3: Downtrend with sustained evidence -> bias below OR. Adjustment magnitude: cap at -50% of OR (65 * 0.5 = 32.5). Since gap is small, use moderate downward adjustment: reduce OR by 20% -> 65 * 0.8 
+
+--- Period 18 ---
+  Demand: 46, OR rec: 114, LLM ordered: 101
+  Full Rationale:
+  STEP 1: Pipeline status is ADEQUATE (IP=480, B=594, ratio=0.81), room to order 114. Trend is down with 3 periods evidence, slope -10.4/p, R²=0.237. OR trust is low due to i.i.d. violation (down-trend detected) and equal-weights causing overestimation (gap=-11.1% > 8%). No anomaly alerts. STEP 2: |gap_pct|=11.1% < 15%, but trust is low and trend is down with evidence >=3, so override is warranted. STEP 3: Downward trend with sustained evidence suggests bias below OR. Suggested bias from audit is 
+
+--- Period 19 ---
+  Demand: 101, OR rec: 49, LLM ordered: 25
+  Full Rationale:
+  STEP 1: pipe_status is ADEQUATE, so pipeline is not overfilled. Trend is down with 3 periods evidence, gap is -27.4% (large), trust_level is low due to i.i.d. violation (down-trend). STEP 2: |gap_pct| > 20% and clear down-trend with evidence >= 3 -> OVERRIDE. STEP 3: Down-trend with sustained evidence -> bias BELOW OR. Suggested bias from audit is -26.5%, but I cap adjustment at -50% of OR. OR is 49, so -50% gives 24.5, round to 25. STEP 4: Final q = 25, respecting cap of 156. Override down is s
+
+--- Period 20 ---
+  Demand: 69, OR rec: 123, LLM ordered: 62
+  Full Rationale:
+  STEP 1: Pipe status is ADEQUATE (ratio 0.79), not overfilled. Trend is up with 3 periods evidence, but R² is low (0.101) and CV is high (0.380), indicating volatility. Trust level is low due to i.i.d. violation (uptrend) and OR overestimates demand (gap -26.8%). STEP 2: |gap_pct| = 26.8% > 20%, clear uptrend with evidence >= 3, so OVERRIDE. STEP 3: Uptrend with sustained evidence suggests bias above OR. However, the gap is negative (OR overestimates), meaning OR is already high relative to recen

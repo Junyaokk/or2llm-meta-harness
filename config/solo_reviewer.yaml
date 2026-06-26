@@ -1,0 +1,31 @@
+agent:
+  model: deepseek-chat
+  temperature: 0.0
+  max_tokens: 4096
+
+llm:
+  api_key: ${DEEPSEEK_API_KEY}
+  base_url: https://api.deepseek.com/v1
+  timeout: 180.0
+  max_retries: 2
+
+pipeline:
+  mode: solo_reviewer
+  reviewer:
+    model: deepseek-chat
+    deviation_threshold: 1.5
+
+harness:
+  cache:
+    enabled: true
+    max_size: 1000
+    similarity_threshold: 0.92
+  audit:
+    enabled: false
+  checkpoint:
+    enabled: false
+  fallback:
+    strategy: or_baseline
+  insight:
+    max_active: 5
+    ttl_periods: 5

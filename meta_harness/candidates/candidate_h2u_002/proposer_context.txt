@@ -1,0 +1,121 @@
+======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_h2u_000    0.7455     p01_stationary_L0=0.8860, p04_increasing_trend_L0=0.8715, p07_seasonal_L4=0.5365, p08_changepoint_L0=0.8632, p06_variance_L4=0.5700
+
+======================================================================
+DETAILED TRACE: candidate_h2u_000 (mean NR = 0.7455)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5365)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4397.3
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        This is the first period with no prior memory. The pipeline is critically underfilled (IP=0, B=611), so ordering is urge
+2    114      162      162      0        0.0        Memory buffer is empty (first period). Analyst shows pipeline critically underfilled (IP=167 vs B=608), demand trend is 
+3    86       158      158      0        0.0        The memory buffer is empty (no prior insight). The Analyst reports pipeline UNDERFILLED with IP=329 vs B=606, room to or
+4    118      94       102      0        0.0        Memory insight from previous period is empty (no sustained pattern). Analyst says pipeline is ADEQUATE (IP=487, B=590, r
+5    121      11       11       121      438.0      The memory buffer from last period is empty, indicating no sustained pattern was noted. The Analyst reports pipeline sta
+6    75       125      125      75       167.0      The memory buffer is empty (no sustained pattern from prior period). The Analyst reports pipeline status ADEQUATE (IP=47
+7    74       61       61       74       79.0       Memory insight from last period is empty (no sustained pattern). Analyst confirms pipeline is ADEQUATE (IP=521, B=582, r
+8    119      0        61       119      284.0      Memory from last period was empty (no sustained pattern). Analyst shows a clear down-trend with 3 periods evidence, high
+9    102      147.8188815134008 147      102      307.0      Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~15%' — but this period demand spiked to 119, brea
+10   140      121      136      140      474.0      Memory from last period noted a downward trend, but current period shows flat trend with only 0 evidence periods and R²=
+11   78       149      149      78       243.0      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current period demand o
+12   158      88       88       69       276.0      Memory from last period noted 'Demand up 4 of last 5 periods, OR lagging ~15%', but current period demand is 78, which i
+13   150      107      89       147.8188815134008 591.3      Memory from last period noted a down trend, but current demand of 158 is a sharp increase, contradicting that pattern. T
+14   124      150      143      121.0    484.0      Memory from last period noted 'up' trend, but current period shows volatile demand with no sustained direction (R²=0.152
+15   99       132      116      99       346.0      Memory from last period noted volatile demand with no sustained pattern. Analyst confirms volatile trend (CV=0.283, R²=0
+16   58       79       79       58       152.0      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but current period shows demand down to 99, 
+17   103      0        48       103      328.0      Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand 
+18   46       100      149      46       -4.0       Memory from last period noted a down trend, which is confirmed by Analyst: trend=down with 3 evidence periods, R²=0.237 
+19   101      70       85       101      185.0      Memory from last period noted a sustained downtrend, which is confirmed by the Analyst: trend=down with 3 evidence perio
+20   69       100      114      69       47.0       Memory from last period noted a sustained downtrend, but current period shows demand of 101, which is above the recent 5
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 15 ---
+  Demand: 99, OR rec: 116, LLM ordered: 132
+  Full Rationale:
+  Memory from last period noted volatile demand with no sustained pattern. Analyst confirms volatile trend (CV=0.283, R²=0.217) and low trust due to non-i.i.d. and equal-weight bias. OR recommends 116, but the bias suggestion of +16 (13.8%) indicates OR may underestimate. Pipeline is ADEQUATE (IP=494, B=611, ratio=0.81), leaving room to order 116. Recent demand average (127.5) is 14.4% above historical mean (111.4), and the last period's demand (124) was close to that average. Given the volatility
+
+--- Period 17 ---
+  Demand: 103, OR rec: 48, LLM ordered: 0
+  Full Rationale:
+  Memory from last period: 'Demand down 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand has been declining sharply (slope -30.1/p, R²=0.985, 4 evidence periods). The Analyst confirms trend=down, trust=low due to i.i.d. violation. OR's q_or=48 is based on all-history d_bar=108.3, which is far above recent demand (5p-avg=107.8, but last 3 periods: 124, 99, 58 — clearly dropping). The pipeline is ADEQUATE (IP=548, B=597, ratio=0.92), but with demand falling, ordering
+
+--- Period 18 ---
+  Demand: 46, OR rec: 149, LLM ordered: 100
+  Full Rationale:
+  Memory from last period noted a down trend, which is confirmed by Analyst: trend=down with 3 evidence periods, R²=0.237 (low but consistent direction), and gap=-11.1%. OR trust is low due to i.i.d. violation and equal-weight bias causing overestimation. OR recommends 149, but given the sustained downward demand (recent 5p avg=96 vs all-time avg=108), OR is likely too high. The pipeline is ADEQUATE (IP=445, B=594, ratio=0.75), so there is room to order less. Stockouts are costly (p/h=4), but the 
+
+--- Period 19 ---
+  Demand: 101, OR rec: 85, LLM ordered: 70
+  Full Rationale:
+  Memory from last period noted a sustained downtrend, which is confirmed by the Analyst: trend=down with 3 evidence periods, gap=-27.4%, and OR trust is low due to i.i.d. violation. The OR formula, using all historical data, overestimates demand (d_bar=105.3 vs recent avg 76.5), leading to a q_or of 85. However, the pipeline is ADEQUATE (IP=499, B=585, ratio=0.85), meaning there is room to order 85 without overfilling. Given the strong downtrend and high volatility (CV=0.376), ordering the full O
+
+--- Period 20 ---
+  Demand: 69, OR rec: 114, LLM ordered: 100
+  Full Rationale:
+  Memory from last period noted a sustained downtrend, but current period shows demand of 101, which is above the recent 5-period average of 77.0 and the trend direction is now 'up' with 3 evidence periods, contradicting the previous downtrend. The Analyst confirms a trend reversal: trend_dir=up, slope=+7.2/p, but R²=0.101 is very low, indicating high volatility (CV=0.380). The OR trust audit flags i.i.d. violation due to trend and suggests OR overestimates by 26.3% (bias -30), but this is based o
+
+### Instance: p06_variance_L4 (NR = 0.5700)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4688.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141.89556059321282 141      0        0.0        This is the first period with no prior memory. The pipeline is critically underfilled (IP=0, B=541), and the OR recommen
+2    155      142.7822216182063 142      0        0.0        Memory is empty (first period). Analyst shows pipeline critically underfilled (IP=142 vs B=555, ratio=0.26), demand tren
+3    128      159      159      0        0.0        Memory from last period noted an uptrend with OR lagging. This period, demand spiked to 155, confirming the trend. Analy
+4    117      159      159      0        0.0        Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand tr
+5    98       9        9        98       348.1      The memory insight from last period noted a sustained uptrend, but the current period's demand of 117 is lower than the 
+6    98       50       88       98       303.3      The memory insight from last period is not provided, but the current period's data shows a clear down-trend with 4 perio
+7    47       50       129      47       -12.7      Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~15%' — this is confirmed by current data: demand 
+8    83       50       109      83       55.3       Memory from last period noted a sustained downtrend, which is confirmed by the Analyst: trend=down with 3 evidence perio
+9    123      100      132      123      329.3      Memory from last period (empty) provides no sustained pattern. Analyst shows pipeline ADEQUATE (IP=436, B=569, ratio=0.7
+10   92       130      151      92       247.3      Memory from last period noted volatile demand. Analyst confirms trend is up with 3 periods evidence but low R² (0.203) a
+11   119      130      118      119      424.3      Memory from last period noted a potential uptrend, and the Analyst confirms an up-trend with 3 periods of evidence, thou
+12   84       110      110      84       318.3      Memory insight from last period was 'Demand up 4 of last 5 periods, OR lagging ~15%', but current period shows demand of
+13   102      78       78       102      392.3      Memory from last period (empty) is not contradicted. Analyst says pipeline is ADEQUATE (IP=488, B=566, ratio=0.86), room
+14   130      100      100      130      504.3      Memory insight from last period was 'down' trend, but current period shows flat trend with no evidence periods and very 
+15   123      137      137      123      469.3      Memory insight from last period was empty (no sustained pattern). Analyst confirms pipeline is ADEQUATE (IP=434, B=571, 
+16   139      147      127      132.67778221141913 530.7      Memory from last period: no sustained pattern noted. Analyst shows pipeline ADEQUATE (IP=448, B=575, ratio=0.78), trend 
+17   107      149      121      78.0     312.0      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand in
+18   78       57       49       78       290.0      Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but this period demand dropped to 107, break
+19   66       50       64       66       171.0      Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~15%' — this is confirmed by current data: demand 
+20   49       60       73       49       5.0        Memory from last period noted a down-trend, which is confirmed by Analyst: trend=down with 4 evidence periods, R²=0.966,
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 16 ---
+  Demand: 139, OR rec: 127, LLM ordered: 147
+  Full Rationale:
+  Memory from last period: no sustained pattern noted. Analyst shows pipeline ADEQUATE (IP=448, B=575, ratio=0.78), trend up with 3 evidence periods and high R²=0.803, gap=+4.1%. OR trust is low due to trend violation, suggesting OR may underestimate. OR recommends 127, but with demand trending up and recent 5-period avg (109.8) above historical mean (105.4), the base stock B may be too low. The trend slope of +14.5/period is strong, so ordering at cap (147) is justified to avoid stockouts given p
+
+--- Period 17 ---
+  Demand: 107, OR rec: 121, LLM ordered: 149
+  Full Rationale:
+  Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — this is confirmed by current data: demand in period 16 was 139, and the 5-period average is 123.5 vs all-time average 107.0 (gap +15.4%). The Analyst confirms trend_dir=up with 3 evidence periods and R²=0.726, and trust=low due to i.i.d. violation and OR underestimation bias of +14.9%. Pipeline is ADEQUATE (IP=462, B=584, ratio=0.79), with room to order 121. OR recommends q_or=121, but given the sustained uptrend and OR'
+
+--- Period 18 ---
+  Demand: 78, OR rec: 49, LLM ordered: 57
+  Full Rationale:
+  Memory from last period: 'Demand up 4 of last 5 periods, OR lagging ~15%' — but this period demand dropped to 107, breaking the uptrend. Analyst confirms trend is now 'down' with 3 evidence periods, though R² is low (0.256) indicating noise. OR trust is low due to trend violation and OR underestimating demand by ~16%. Pipeline is ADEQUATE (IP=533, B=583, room=49). OR recommends q=49. Given the demand drop and low R², the uptrend may have ended; however, the recent 5-period average (124.8) is sti
+
+--- Period 19 ---
+  Demand: 66, OR rec: 64, LLM ordered: 50
+  Full Rationale:
+  Memory from last period: 'Demand down 3 of last 4 periods, OR lagging ~15%' — this is confirmed by current data: demand dropped to 78 in P18, and the Analyst shows a down-trend with 3 periods evidence and R²=0.687 (high). The OR trust audit is low due to i.i.d. violation (down-trend), and suggests a bias of +3 (+4.7%), which is small but indicates OR may be slightly overestimating because it uses all historical data including higher past values. Pipeline is ADEQUATE (IP=512, B=577, ratio=0.89), 
+
+--- Period 20 ---
+  Demand: 49, OR rec: 73, LLM ordered: 60
+  Full Rationale:
+  Memory from last period noted a down-trend, which is confirmed by Analyst: trend=down with 4 evidence periods, R²=0.966, slope -24.8/period. OR trust is low due to i.i.d. violation. OR recommends q=73, but this is based on all-history mean (104.1) which lags behind the recent decline (5p-avg=97.5, gap=-6.3%). The pipeline is ADEQUATE (IP=496, B=570, ratio=0.87), so there is room to order up to cap=147. Given the strong down-trend, ordering the full OR amount risks overstocking as demand continue

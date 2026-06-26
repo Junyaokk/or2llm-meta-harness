@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta-Harness Report — H2 Analyst + Decider Optimization</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --red: #f85149; --yellow: #d2991d;
+    --purple: #a371f7; --orange: #f0883e;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 1.8em; color: var(--accent); margin-bottom: 4px; }
+  h2 { font-size: 1.3em; color: var(--accent); margin: 32px 0 16px;
+        border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { font-size: 1.1em; color: var(--text); margin: 20px 0 10px; }
+  h4 { font-size: 0.95em; color: var(--muted); margin: 16px 0 8px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px; margin-bottom: 16px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+
+  .kpi-box { text-align: center; padding: 16px; }
+  .kpi-value { font-size: 2.2em; font-weight: 700; }
+  .kpi-label { font-size: 0.8em; color: var(--muted); margin-top: 4px; }
+  .kpi-sub  { font-size: 0.75em; margin-top: 2px; }
+
+  .text-green { color: var(--green); }
+  .text-red { color: var(--red); }
+  .text-yellow { color: var(--yellow); }
+  .text-purple { color: var(--purple); }
+  .text-muted { color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+  th { background: var(--border); color: var(--text); padding: 8px 10px;
+        text-align: left; font-weight: 600; white-space: nowrap; }
+  td { padding: 6px 10px; border-bottom: 1px solid var(--border);
+        vertical-align: top; }
+  tr:hover { background: rgba(88,166,255,0.05); }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 600;
+  }
+  .badge-best { background: rgba(63,185,80,0.2); color: var(--green); }
+  .badge-baseline { background: rgba(139,148,158,0.2); color: var(--muted); }
+  .badge-improved { background: rgba(88,166,255,0.2); color: var(--accent); }
+  .badge-worse { background: rgba(248,81,73,0.2); color: var(--red); }
+
+  .bar-container { height: 8px; background: var(--border); border-radius: 4px;
+                    overflow: hidden; margin: 4px 0; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+
+  .rationale-box {
+    background: #0d1117; border: 1px solid var(--border); border-radius: 4px;
+    padding: 12px; font-size: 0.82em; max-height: 300px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word; margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.4;
+  }
+
+  .sparkline { display: flex; align-items: flex-end; gap: 4px; height: 60px; }
+  .sparkline-bar {
+    flex: 1; background: var(--accent); border-radius: 2px 2px 0 0;
+    min-height: 2px; transition: height 0.3s; position: relative;
+  }
+  .sparkline-bar.baseline { background: var(--muted); }
+  .sparkline-bar.best { background: var(--green); }
+
+  .diff-arrow { font-size: 1.2em; }
+
+  .collapsible { cursor: pointer; user-select: none; }
+  .collapsible::before { content: '▸ '; display: inline-block; transition: 0.2s; }
+  .collapsible.open::before { content: '▾ '; }
+  .collapsible-content { display: none; }
+  .collapsible-content.open { display: block; }
+
+  .proposer-ctx {
+    background: #0d1117; border: 1px solid var(--border); border-radius: 4px;
+    padding: 16px; font-size: 0.78em; max-height: 500px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
+    font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.3;
+  }
+
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .timeline-item { position: relative; margin-bottom: 16px; }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -20px; top: 6px;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+  }
+
+  .tag {
+    display: inline-block; padding: 1px 6px; border-radius: 4px;
+    font-size: 0.7em; font-weight: 600; margin-right: 4px;
+  }
+  .tag-L0 { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .tag-L4 { background: rgba(163,113,247,0.15); color: var(--purple); }
+  .tag-rho { background: rgba(210,153,29,0.15); color: var(--yellow); }
+
+  @media (max-width: 900px) {
+    .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr; }
+    body { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+<h1>Meta-Harness Report</h1>
+<div class="text-muted" style="margin-bottom:24px;">
+  H2 Analyst + Decider Optimization · Plan B (深 Trace) · 2026-05-18 00:39
+  · Duration: 0m0s
+  · 6 candidates · 5 instances · 20 periods/instance
+</div>
+<h2>📊 Executive Summary</h2>
+<div class="card">
+  <div class="grid-3">
+    <div class="kpi-box">
+      <div class="kpi-value text-green">0.7400</div>
+      <div class="kpi-label">Best Candidate NR</div>
+      <div class="kpi-sub text-muted">candidate_011</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-value text-green">+0.0116</div>
+      <div class="kpi-label">Delta vs Baseline</div>
+      <div class="kpi-sub text-green">+1.6%</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-value text-purple">5/5</div>
+      <div class="kpi-label">Candidates Improving on Baseline</div>
+      <div class="kpi-sub text-muted">Excluding baseline itself</div>
+    </div>
+  </div>
+</div>
+<h2>📈 Score Progression</h2>
+<div class="card">
+  <div class="sparkline" style="margin-bottom:16px;">
+    <div class="sparkline-bar baseline" style="height:10%" title="candidate_006: 0.7284"></div>
+<div class="sparkline-bar" style="height:96%" title="candidate_007: 0.7384"></div>
+<div class="sparkline-bar" style="height:48%" title="candidate_008: 0.7328"></div>
+<div class="sparkline-bar" style="height:22%" title="candidate_009: 0.7297"></div>
+<div class="sparkline-bar" style="height:64%" title="candidate_010: 0.7346"></div>
+<div class="sparkline-bar best" style="height:110%" title="candidate_011: 0.7400"></div>
+  </div>
+  <table>
+    <thead><tr>
+      <th>Candidate</th><th>Mean NR</th><th>Δ Baseline</th><th>Per Instance</th>
+    </tr></thead>
+    <tbody><tr>
+              <td><span class="badge badge-baseline">BASELINE</span> candidate_006</td>
+              <td><strong>0.7284</strong></td>
+              <td class="text-green">+0.0000</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.9007<br>p04_increasing_trend_L0: 0.8535<br>p07_seasonal_L4: 0.5426<br>p08_changepoint_L0: 0.8672<br>p06_variance_L4: 0.4777</td>
+            </tr><tr>
+              <td> candidate_007</td>
+              <td><strong>0.7384</strong></td>
+              <td class="text-green">+0.0100</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8951<br>p04_increasing_trend_L0: 0.8458<br>p07_seasonal_L4: 0.5405<br>p08_changepoint_L0: 0.8671<br>p06_variance_L4: 0.5432</td>
+            </tr><tr>
+              <td> candidate_008</td>
+              <td><strong>0.7328</strong></td>
+              <td class="text-green">+0.0045</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8975<br>p04_increasing_trend_L0: 0.8116<br>p07_seasonal_L4: 0.5416<br>p08_changepoint_L0: 0.8671<br>p06_variance_L4: 0.5463</td>
+            </tr><tr>
+              <td> candidate_009</td>
+              <td><strong>0.7297</strong></td>
+              <td class="text-green">+0.0014</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8964<br>p04_increasing_trend_L0: 0.8109<br>p07_seasonal_L4: 0.5405<br>p08_changepoint_L0: 0.8610<br>p06_variance_L4: 0.5399</td>
+            </tr><tr>
+              <td> candidate_010</td>
+              <td><strong>0.7346</strong></td>
+              <td class="text-green">+0.0062</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8695<br>p04_increasing_trend_L0: 0.8531<br>p07_seasonal_L4: 0.5544<br>p08_changepoint_L0: 0.8619<br>p06_variance_L4: 0.5340</td>
+            </tr><tr>
+              <td><span class="badge badge-best">BEST</span> candidate_011</td>
+              <td><strong>0.7400</strong></td>
+              <td class="text-green">+0.0116</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8965<br>p04_increasing_trend_L0: 0.8342<br>p07_seasonal_L4: 0.5517<br>p08_changepoint_L0: 0.8715<br>p06_variance_L4: 0.5458</td>
+            </tr></tbody>
+  </table>
+</div>
+<h2>Evolution Timeline</h2>
+<div class="card">
+  <div class="timeline">
+    <div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_006</strong> <span class="badge badge-baseline">BASELINE</span>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7284</span>
+    
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_006: <span style="color:#f85149;">0.0000 (0.0%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;"></div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_007</strong>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7384</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#3fb950;">+0.0100</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_006: <span style="color:#3fb950;">+0.0100 (+1.4%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;"></div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_008</strong>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7328</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#f85149;">-0.0055</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_006: <span style="color:#3fb950;">+0.0045 (+0.6%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;">Hypothesis: The baseline &amp;quot;bias downward when uncertain&amp;quot; rule caused 0-orders</div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_009</strong>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7297</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#f85149;">-0.0031</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_006: <span style="color:#3fb950;">+0.0014 (+0.2%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;">Hypothesis: Baseline Decider follows OR too closely when Analyst detects</div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_010</strong>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7346</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#3fb950;">+0.0048</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_006: <span style="color:#3fb950;">+0.0062 (+0.9%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;"></div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_011</strong> <span class="badge badge-best">BEST</span>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7400</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#3fb950;">+0.0054</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_006: <span style="color:#3fb950;">+0.0116 (+1.6%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;"></div>
+</div>
+  </div>
+</div>
+<h2>Candidate Details</h2>
+<script>
+function toggleCollapsible(el) {
+  el.classList.toggle('open');
+  el.parentElement.nextElementSibling.classList.toggle('open');
+}
+function toggleDiff(id) {
+  var el = document.getElementById(id);
+  if (el.style.display === 'none' || el.style.display === '') { el.style.display = 'block'; }
+  else { el.style.display = 'none'; }
+}
+</script>
+<div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_006</span>
+    <span class="badge badge-baseline">
+      NR=0.7284 <span class="text-green">(+0.0000 vs candidate_006)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    
+    <table style="margin-bottom:12px;">
+  <thead><tr>
+              <th>Instance</th><th>NR</th><th>Overrides</th><th>Pipeline</th><th>Trend</th><th>OR Trust</th>
+            </tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.9007</strong></td>
+              <td class="text-muted">5</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8535</strong></td>
+              <td class="text-muted">16</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">up</span></td>
+              <td><span class="tag tag-rho">low</span></td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5426</strong></td>
+              <td class="text-muted">4</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8672</strong></td>
+              <td class="text-muted">2</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.4777</strong></td>
+              <td class="text-muted">7</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 006 — H2 Baseline Decider Prompt.
+
+The Decider receives PRE-COMPUTED analysis (Pipeline, Demand, OR Audit)
+from the Analyst. Its job is judgment, not computation.
+
+Key difference from H1: no manual arrival-time calculation, no trend
+detection from raw data, no OR assumption verification. All of that
+is already done by the Analyst. The Decider only weighs the signals
+and makes a final call.</div>
+    <h4>Analyst Config <span class="text-muted" style="font-size:0.75em;">(904 chars)</span></h4>
+    
+    <h4>Decider Prompt <span class="text-muted" style="font-size:0.75em;">(1666 chars)</span></h4>
+    
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_007</span>
+    <span class="badge badge-improved">
+      NR=0.7384 <span class="text-green">(+0.0100 vs candidate_006)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_006 → candidate_007 · NR +0.0100 <span class="text-green">↑</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr>
+              <th>Instance</th><th>NR</th><th>Overrides</th><th>Pipeline</th><th>Trend</th><th>OR Trust</th>
+            </tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8951</strong></td>
+              <td class="text-muted">4</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8458</strong></td>
+              <td class="text-muted">15</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">up</span></td>
+              <td><span class="tag tag-rho">low</span></td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5405</strong></td>
+              <td class="text-muted">4</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8671</strong></td>
+              <td class="text-muted">2</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5432</strong></td>
+              <td class="text-muted">8</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 006 — H2 Baseline Decider Prompt.
+
+The Decider receives PRE-COMPUTED analysis (Pipeline, Demand, OR Audit)
+from the Analyst. Its job is judgment, not computation.
+
+Key difference from H1: no manual arrival-time calculation, no trend
+detection from raw data, no OR assumption verification. All of that
+is already done by the Analyst. The Decider only weighs the signals
+and makes a final call.</div>
+    <h4>Analyst Config <span class="text-muted" style="font-size:0.75em;">(1400 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_007_config')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+20</span> <span style="color:var(--red);">-14</span> lines (34 total changes)
+  </span>
+  <div id="diff_candidate_007_config" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_006)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_007_config</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -1,34 +1,40 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Candidate 006 — H2 Baseline: Analyst + Decider architecture.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Candidate 007 — More sensitive thresholds to detect variance shifts and weak trends.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Hypothesis: Baseline Analyst missed p06 variance change (CV=0.5 threshold too high)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>and p07 seasonality (trend_window=5 can't see period=10 cycle). Lower thresholds</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>should surface these patterns, giving the Decider better trust signals.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Analyst configuration: all modules enabled with default thresholds.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>This is the H2 control — Analyst does the computing, Decider does the judging.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>No prompt optimization yet. Compare against H1 candidate_000 (single LLM does all).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Changes from candidate_006:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_window: 5 → 8 (longer lookback for seasonal patterns)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_gap_threshold: 0.15 → 0.10 (more sensitive to demand shifts)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - volatility_cv_threshold: 0.5 → 0.3 (catch variance regime changes)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - or_bias_threshold: 0.12 → 0.08 (lower bar for detecting OR bias)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - iid_trend_threshold: 0.10 → 0.05 (detect weaker trends for i.i.d. violations)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Pipeline</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Pipeline — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Demand</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_window=5,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Demand — more sensitive</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_window=8,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_gap_threshold=0.15,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    volatility_cv_threshold=0.5,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_gap_threshold=0.10,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    volatility_cv_threshold=0.3,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # OR audit</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    or_bias_threshold=0.12,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # OR audit — lower bar for detecting bias</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    or_bias_threshold=0.08,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    iid_trend_threshold=0.10,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    iid_trend_threshold=0.05,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Anomaly</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Anomaly — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Active modules</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Active modules — all on</div>
+  </div>
+</div>
+    <h4>Decider Prompt <span class="text-muted" style="font-size:0.75em;">(1666 chars)</span></h4>
+    <p class="text-muted">No significant changes from baseline.</p>
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_008</span>
+    <span class="badge badge-improved">
+      NR=0.7328 <span class="text-green">(+0.0045 vs candidate_006)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_007 → candidate_008 · NR -0.0055 <span class="text-red">↓</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr>
+              <th>Instance</th><th>NR</th><th>Overrides</th><th>Pipeline</th><th>Trend</th><th>OR Trust</th>
+            </tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8975</strong></td>
+              <td class="text-muted">0</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8116</strong></td>
+              <td class="text-muted">14</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">up</span></td>
+              <td><span class="tag tag-rho">low</span></td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5416</strong></td>
+              <td class="text-muted">0</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8671</strong></td>
+              <td class="text-muted">2</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5463</strong></td>
+              <td class="text-muted">1</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 008 — Fixed Decider decision framework: pipeline-aware biasing.
+Hypothesis: The baseline &quot;bias downward when uncertain&quot; rule caused 0-orders
+when pipeline was ADEQUATE but trust was low. The bias direction should depend
+on pipeline status, not a blanket downward bias.
+
+Changes from candidate_006 Decider:
+  - Removed &quot;bias downward when uncertain (ordering less is safer)&quot;
+  - Replaced with: bias toward IP→B target depending on pipe_status
+  - Emphasized: when trust=low + pipe=ADEQUATE, follow OR more, not less
+  - Override OR only with clear pipeline signal, not with uncertainty alone</div>
+    <h4>Analyst Config <span class="text-muted" style="font-size:0.75em;">(1400 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_008_config')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+20</span> <span style="color:var(--red);">-14</span> lines (34 total changes)
+  </span>
+  <div id="diff_candidate_008_config" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_006)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_008_config</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -1,34 +1,40 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Candidate 006 — H2 Baseline: Analyst + Decider architecture.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Candidate 007 — More sensitive thresholds to detect variance shifts and weak trends.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Hypothesis: Baseline Analyst missed p06 variance change (CV=0.5 threshold too high)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>and p07 seasonality (trend_window=5 can't see period=10 cycle). Lower thresholds</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>should surface these patterns, giving the Decider better trust signals.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Analyst configuration: all modules enabled with default thresholds.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>This is the H2 control — Analyst does the computing, Decider does the judging.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>No prompt optimization yet. Compare against H1 candidate_000 (single LLM does all).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Changes from candidate_006:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_window: 5 → 8 (longer lookback for seasonal patterns)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_gap_threshold: 0.15 → 0.10 (more sensitive to demand shifts)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - volatility_cv_threshold: 0.5 → 0.3 (catch variance regime changes)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - or_bias_threshold: 0.12 → 0.08 (lower bar for detecting OR bias)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - iid_trend_threshold: 0.10 → 0.05 (detect weaker trends for i.i.d. violations)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Pipeline</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Pipeline — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Demand</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_window=5,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Demand — more sensitive</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_window=8,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_gap_threshold=0.15,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    volatility_cv_threshold=0.5,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_gap_threshold=0.10,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    volatility_cv_threshold=0.3,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # OR audit</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    or_bias_threshold=0.12,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # OR audit — lower bar for detecting bias</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    or_bias_threshold=0.08,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    iid_trend_threshold=0.10,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    iid_trend_threshold=0.05,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Anomaly</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Anomaly — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Active modules</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Active modules — all on</div>
+  </div>
+</div>
+    <h4>Decider Prompt <span class="text-muted" style="font-size:0.75em;">(3333 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_008')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+27</span> <span style="color:var(--red);">-13</span> lines (40 total changes)
+  </span>
+  <div id="diff_candidate_008" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_006)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_008</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -1,24 +1,38 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Context:** Lead time L={anticipated_lead_time}. p={p}, h={h}, critical fractile={critical_fractile:.4f}.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Context:** Lead time L={anticipated_lead_time}. p={p}, h={h}, critical fractile={critical_fractile:.4f}. Stockout cost p is higher than holding cost h — missing demand is expensive.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>- PIPELINE ANALYSIS: Already computed. IP, B, arrival timeline, overdue detection are FACTUAL. Trust them. If status=OVERFILLED, ordering more is wasteful.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>- DEMAND ANALYSIS: Already computed. Trend direction, gap vs d_bar, volatility are FACTUAL. Trust them. Evidence&lt;4 periods = not yet confirmed.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>- OR ASSUMPTION AUDIT: Already checked. Trust level tells you how much to rely on OR recommendation.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>- ALERTS: Anomalies detected. Consider them but don't overreact to single spikes.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- PIPELINE ANALYSIS: Already computed. IP, B, arrival timeline, overdue detection are FACTUAL. Trust them. If status=OVERFILLED, ordering more is wasteful. If UNDERFILLED, stockout risk is real.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- DEMAND ANALYSIS: Already computed. Trend direction, gap vs d_bar, volatility are FACTUAL. Trust them. Evidence&lt;4 periods = not yet confirmed. &quot;volatile&quot; = CV above threshold, demand is unpredictable.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- OR ASSUMPTION AUDIT: Already checked. Trust level tells you how much to rely on OR recommendation. Low trust = OR assumptions violated (trend detected, equal-weights broken, or overdue orders). The OR may be systematically wrong.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- ALERTS: Anomalies detected. SPIKE = single period, likely noise. SUSTAINED = multi-period shift, take seriously.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>1. Start from OR recommendation.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. Adjust based on Analyst signals:</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   - Pipeline OVERFILLED + no alerts → order 0 or small. The pipeline is full.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   - Pipeline UNDERFILLED + trend UP (4+ evidence) → increase order.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   - Trend DOWN confirmed + OR trust low → decrease order.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   - Single spike alert → ignore. Sustained deviation alert → adjust.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. Bias downward when uncertain (ordering less is safer than ordering more).</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. Final quantity: between 0 and cap. Round to integer.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>1. Start from OR recommendation. It is the mathematically optimal order IF assumptions hold. The Analyst tells you whether they hold.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>2. Pipeline status determines your room to maneuver:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - OVERFILLED: IP already exceeds B. Aggressively reduce order, even to 0. The pipeline is full.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - ADEQUATE: IP is in range. Stay close to OR recommendation. Unless trend is strongly confirmed, don't override.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - UNDERFILLED: IP is below B. Stockout risk is real. Order AT LEAST the OR recommendation unless the pipeline shows imminent arrivals covering the gap.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>3. Trust level tells you how much to weigh OR vs pipeline:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - high trust: OR assumptions hold. Follow OR closely, adjust only for OVERFILLED pipeline.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - medium trust: one assumption violated. Apply modest adjustment (10-20% from OR).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - low trust: multiple assumptions violated. OR may be off. Use pipeline analysis as primary guide: order enough to fill the IP to B gap, capped by what demand analysis suggests.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>4. Demand signals fine-tune the quantity:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - Trend UP confirmed (4+ evidence) + UNDERFILLED: increase above OR, within room_to_order.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - Trend DOWN confirmed + ADEQUATE/OVERFILLED: reduce below OR.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - &quot;volatile&quot; + OVERFILLED: be conservative, order minimum.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - &quot;volatile&quot; + UNDERFILLED: order OR recommendation, don't under-order in uncertainty.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - Single spike alert: ignore. Does not change the decision.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>5. The critical fractile is {critical_fractile:.4f}. When OR assumptions hold, this means demand will be below your order target about {critical_fractile:.0%} of periods. When assumptions don't hold (trust != high), this no longer applies strictly.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>6. Final quantity: between 0 and cap. Round to integer. Remember: ordering too much costs h={h} per unsold unit, ordering too little costs p={p} per lost sale.</div>
+  </div>
+</div>
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_009</span>
+    <span class="badge badge-improved">
+      NR=0.7297 <span class="text-green">(+0.0014 vs candidate_006)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_008 → candidate_009 · NR -0.0031 <span class="text-red">↓</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr>
+              <th>Instance</th><th>NR</th><th>Overrides</th><th>Pipeline</th><th>Trend</th><th>OR Trust</th>
+            </tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8964</strong></td>
+              <td class="text-muted">1</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8109</strong></td>
+              <td class="text-muted">10</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">up</span></td>
+              <td><span class="tag tag-rho">low</span></td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5405</strong></td>
+              <td class="text-muted">3</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8610</strong></td>
+              <td class="text-muted">3</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5399</strong></td>
+              <td class="text-muted">3</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 009 — Decider prompt with seasonal/cyclic demand awareness.
+Hypothesis: Baseline Decider follows OR too closely when Analyst detects
+&quot;volatile&quot; demand. The Decider needs explicit guidance: volatile + flat
+trend = cyclic pattern. Use recent demand direction (gap_pct sign and
+magnitude) to determine cycle position and adjust order accordingly.
+
+Changes from candidate_006 Decider:
+  - Added &quot;volatile&quot; handling: when trend=volatile, use gap_pct to judge
+    cycle position (peak vs trough) and bias order appropriately
+  - Added: look at last 2-3 demand values for short-term direction
+  - Emphasized: when volatile, OR recommendation is less reliable for timing
+  - Bias upward in troughs (below d_bar), downward in peaks (above d_bar)</div>
+    <h4>Analyst Config <span class="text-muted" style="font-size:0.75em;">(1400 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_009_config')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+20</span> <span style="color:var(--red);">-14</span> lines (34 total changes)
+  </span>
+  <div id="diff_candidate_009_config" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_006)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_009_config</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -1,34 +1,40 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Candidate 006 — H2 Baseline: Analyst + Decider architecture.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Candidate 007 — More sensitive thresholds to detect variance shifts and weak trends.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Hypothesis: Baseline Analyst missed p06 variance change (CV=0.5 threshold too high)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>and p07 seasonality (trend_window=5 can't see period=10 cycle). Lower thresholds</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>should surface these patterns, giving the Decider better trust signals.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Analyst configuration: all modules enabled with default thresholds.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>This is the H2 control — Analyst does the computing, Decider does the judging.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>No prompt optimization yet. Compare against H1 candidate_000 (single LLM does all).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Changes from candidate_006:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_window: 5 → 8 (longer lookback for seasonal patterns)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_gap_threshold: 0.15 → 0.10 (more sensitive to demand shifts)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - volatility_cv_threshold: 0.5 → 0.3 (catch variance regime changes)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - or_bias_threshold: 0.12 → 0.08 (lower bar for detecting OR bias)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - iid_trend_threshold: 0.10 → 0.05 (detect weaker trends for i.i.d. violations)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Pipeline</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Pipeline — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Demand</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_window=5,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Demand — more sensitive</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_window=8,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_gap_threshold=0.15,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    volatility_cv_threshold=0.5,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_gap_threshold=0.10,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    volatility_cv_threshold=0.3,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # OR audit</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    or_bias_threshold=0.12,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # OR audit — lower bar for detecting bias</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    or_bias_threshold=0.08,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    iid_trend_threshold=0.10,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    iid_trend_threshold=0.05,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Anomaly</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Anomaly — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Active modules</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Active modules — all on</div>
+  </div>
+</div>
+    <h4>Decider Prompt <span class="text-muted" style="font-size:0.75em;">(2569 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_009')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+12</span> <span style="color:var(--red);">-3</span> lines (15 total changes)
+  </span>
+  <div id="diff_candidate_009" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_006)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_009</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -5,20 +5,29 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>- DEMAND ANALYSIS: Already computed. Trend direction, gap vs d_bar, volatility are FACTUAL. Trust them. Evidence&lt;4 periods = not yet confirmed.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- DEMAND ANALYSIS: Already computed. Trend direction, gap vs d_bar, volatility are FACTUAL. Trust them. Evidence&lt;4 periods = not yet confirmed. **Important: when trend_dir=&quot;volatile&quot; with a large gap_pct (+/-10% or more), this signals a CYCLIC pattern — demand is moving through peaks and troughs.**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. Bias downward when uncertain (ordering less is safer than ordering more).</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. Final quantity: between 0 and cap. Round to integer.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>3. **Cyclic/volatile demand handling (when trend_dir=&quot;volatile&quot;):**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - If gap_pct &gt; +10%: you are in a PEAK. Demand will likely decrease soon. Be cautious — order at or slightly below OR recommendation, unless pipeline is UNDERFILLED.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - If gap_pct &lt; -10%: you are in a TROUGH. Demand will likely increase soon. Order at or above OR recommendation to build inventory for the upswing, unless pipeline is OVERFILLED.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - If gap_pct between -10% and +10%: near the mean, OR recommendation is reasonable.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - The OR assumes constant demand — it does NOT know about cycles. During volatile demand, the OR is a starting point, not the answer.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>4. Bias downward when uncertain AND pipeline is ADEQUATE or OVERFILLED. When pipeline is UNDERFILLED and you're uncertain, stay closer to OR — stockout costs more than holding.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>5. Final quantity: between 0 and cap. Round to integer.</div>
+  </div>
+</div>
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_010</span>
+    <span class="badge badge-improved">
+      NR=0.7346 <span class="text-green">(+0.0062 vs candidate_006)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_009 → candidate_010 · NR +0.0048 <span class="text-green">↑</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr>
+              <th>Instance</th><th>NR</th><th>Overrides</th><th>Pipeline</th><th>Trend</th><th>OR Trust</th>
+            </tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8695</strong></td>
+              <td class="text-muted">13</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8531</strong></td>
+              <td class="text-muted">17</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">up</span></td>
+              <td><span class="tag tag-rho">low</span></td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5544</strong></td>
+              <td class="text-muted">13</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">volatile</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8619</strong></td>
+              <td class="text-muted">7</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5340</strong></td>
+              <td class="text-muted">11</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">up</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 006 — H2 Baseline Decider Prompt.
+
+The Decider receives PRE-COMPUTED analysis (Pipeline, Demand, OR Audit)
+from the Analyst. Its job is judgment, not computation.
+
+Key difference from H1: no manual arrival-time calculation, no trend
+detection from raw data, no OR assumption verification. All of that
+is already done by the Analyst. The Decider only weighs the signals
+and makes a final call.</div>
+    <h4>Analyst Config <span class="text-muted" style="font-size:0.75em;">(1371 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_010_config')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+20</span> <span style="color:var(--red);">-14</span> lines (34 total changes)
+  </span>
+  <div id="diff_candidate_010_config" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_006)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_010_config</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -1,34 +1,40 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Candidate 006 — H2 Baseline: Analyst + Decider architecture.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Candidate 010 — Short window + high sensitivity for seasonal pattern detection.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Hypothesis: A 5-period window on a 10-period seasonal cycle sees alternating</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>up/down half-cycles. Each half-cycle has a clear directional signal with</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>sufficient gap_pct to trigger trend detection. The resulting i.i.d. violations</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>will lower OR trust, guiding the Decider to rely more on pipeline analysis.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Analyst configuration: all modules enabled with default thresholds.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>This is the H2 control — Analyst does the computing, Decider does the judging.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>No prompt optimization yet. Compare against H1 candidate_000 (single LLM does all).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Changes from candidate_007:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_window: 8 → 5 (shorter window catches half-cycles)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_gap_threshold: 0.10 → 0.08 (more sensitive)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_evidence_periods: 4 → 3 (lower bar to declare trend)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - volatility_cv_threshold: 0.3 → 0.25 (still catch variance shifts)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Pipeline</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Pipeline — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Demand</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Demand — short window, high sensitivity</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_evidence_periods=4,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_gap_threshold=0.15,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    volatility_cv_threshold=0.5,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_evidence_periods=3,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_gap_threshold=0.08,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    volatility_cv_threshold=0.25,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # OR audit</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    or_bias_threshold=0.12,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # OR audit — lower bar for detecting bias</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    or_bias_threshold=0.08,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    iid_trend_threshold=0.10,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    iid_trend_threshold=0.05,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Anomaly</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Anomaly — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Active modules</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Active modules — all on</div>
+  </div>
+</div>
+    <h4>Decider Prompt <span class="text-muted" style="font-size:0.75em;">(1666 chars)</span></h4>
+    <p class="text-muted">No significant changes from baseline.</p>
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_011</span>
+    <span class="badge badge-best">
+      NR=0.7400 <span class="text-green">(+0.0116 vs candidate_006)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_010 → candidate_011 · NR +0.0054 <span class="text-green">↑</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr>
+              <th>Instance</th><th>NR</th><th>Overrides</th><th>Pipeline</th><th>Trend</th><th>OR Trust</th>
+            </tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8965</strong></td>
+              <td class="text-muted">6</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8342</strong></td>
+              <td class="text-muted">16</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">up</span></td>
+              <td><span class="tag tag-rho">low</span></td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5517</strong></td>
+              <td class="text-muted">5</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8715</strong></td>
+              <td class="text-muted">5</td>
+              <td><span class="tag tag-L4">UNDERFILLED</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5458</strong></td>
+              <td class="text-muted">6</td>
+              <td><span class="tag tag-L4">ADEQUATE</span></td>
+              <td><span class="tag tag-L0">flat</span></td>
+              <td><span class="tag tag-rho">high</span></td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 006 — H2 Baseline Decider Prompt.
+
+The Decider receives PRE-COMPUTED analysis (Pipeline, Demand, OR Audit)
+from the Analyst. Its job is judgment, not computation.
+
+Key difference from H1: no manual arrival-time calculation, no trend
+detection from raw data, no OR assumption verification. All of that
+is already done by the Analyst. The Decider only weighs the signals
+and makes a final call.</div>
+    <h4>Analyst Config <span class="text-muted" style="font-size:0.75em;">(1266 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_011_config')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+19</span> <span style="color:var(--red);">-15</span> lines (34 total changes)
+  </span>
+  <div id="diff_candidate_011_config" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_006)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_011_config</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -1,34 +1,38 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Candidate 006 — H2 Baseline: Analyst + Decider architecture.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Candidate 011 — Balanced blend of candidate_007 (variance) and candidate_010 (seasonal).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Hypothesis: A middle-ground config captures both seasonal half-cycles and variance</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>regime shifts without excessive false positives on stationary data.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Analyst configuration: all modules enabled with default thresholds.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>This is the H2 control — Analyst does the computing, Decider does the judging.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>No prompt optimization yet. Compare against H1 candidate_000 (single LLM does all).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Changes from candidate_007:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_window: 8 → 6 (compromise: long enough for stability, short enough for cycles)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_evidence_periods: 4 → 3 (faster trend declaration)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - trend_gap_threshold: 0.10 → 0.09 (slightly more sensitive)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - volatility_cv_threshold: 0.3 → 0.28 (slightly more sensitive to variance shifts)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Pipeline</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Pipeline — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Demand</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_window=5,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_evidence_periods=4,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    trend_gap_threshold=0.15,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    volatility_cv_threshold=0.5,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Demand — balanced sensitivity</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_window=6,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_evidence_periods=3,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    trend_gap_threshold=0.09,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    volatility_cv_threshold=0.28,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # OR audit</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    or_bias_threshold=0.12,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # OR audit — lower bar for detecting bias</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    or_bias_threshold=0.08,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    iid_trend_threshold=0.10,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    iid_trend_threshold=0.05,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Anomaly</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Anomaly — unchanged</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>    # Active modules</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>    # Active modules — all on</div>
+  </div>
+</div>
+    <h4>Decider Prompt <span class="text-muted" style="font-size:0.75em;">(1666 chars)</span></h4>
+    <p class="text-muted">No significant changes from baseline.</p>
+  </div>
+</div>
+<h2>🧠 Proposer Context History</h2>
+<div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 1 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_006        0.7284     p01_stationary_L0=0.9007, p04_increasing_trend_L0=0.8535, p07_seasonal_L4=0.5426, p08_changepoint_L0=0.8672, p06_variance_L4=0.4777
+
+======================================================================
+DETAILED TRACE: candidate_006 (mean NR = 0.7284)
+======================================================================
+
+### Instance: p06_variance_L4 (NR = 0.4777)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $3929.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      142      141      0        0.0        Pipeline is critically underfilled (IP=0, B=541), and OR trust is high. Trend is flat with no evidence, so no adjustment
+2    155      142      142      0        0.0        The pipeline is critically underfilled (IP=142, B=555, ratio=0.26), indicating high stockout risk. The OR recommendation
+3    128      159      159      0        0.0        The pipeline is critically underfilled (IP=284, B=603, ratio=0.47) with high stockout risk. Demand is flat with no confi
+4    117      159      159      0        0.0        Pipeline is ADEQUATE with IP=443 and B=612, ratio 0.72, room to order 169 but cap is 159. OR recommendation is 159, whic
+5    98       9        9        98       348.0      The pipeline is adequate with IP close to B, leaving only 9 units of room to order. The trend is flat with no evidence, 
+6    98       89       89       98       304.0      The pipeline is ADEQUATE with IP=513 and B=603, ratio 0.85, leaving room to order 89 up to cap 154. Demand is flat with 
+7    47       90       90       47       -12.0      Pipeline is ADEQUATE with IP=504 and B=595, ratio 0.85, leaving room to order 90 up to cap 151. Demand is flat with no c
+8    83       30       30       83       56.0       The pipeline is adequate with IP=547 and B=578, ratio 0.95, leaving room to order 30. The OR recommendation is 30, which
+9    123      0        74       123      330.0      Pipeline is ADEQUATE with IP=494 and B=569, ratio 0.87, leaving room to order 74 up to cap 151. Demand is flat with no c
+10   92       131      151      92       209.0      The pipeline is underfilled (ratio 0.65) with room to order up to 203, but the cap is 151. The OR recommendation is 151,
+11   119      0        149      119      346.0      The pipeline is adequate with IP=410 and B=569, ratio 0.72, and room to order 158 but cap is 149. The OR recommendation 
+12   84       130      148      84       260.0      The pipeline is underfilled (ratio 0.51) with room to order 281, but the cap is 149. The OR recommendation is 148, which
+13   102      140      147      76       304.0      The pipeline is underfilled (ratio 0.60) with room to order 228, but the cap is 147. The OR recommendation is 147 with h
+14   130      145      145      130      519.0      The pipeline is ADEQUATE with IP=401 and B=564, leaving room to order 163, but the cap is 146. The OR recommendation is 
+15   123      147      147      1        4.0        The pipeline is ADEQUATE with IP=416 and B=571, leaving room to order up to 155, but the cap is 147. The OR recommendati
+16   139      13       13       130      520.0      Pipeline is ADEQUATE with IP=562 and B=575, ratio 0.98, leaving only 13 units room to order. Demand is flat with no conf
+17   107      138      138      107      395.0      Pipeline is ADEQUATE with IP=445 and B=584, ratio 0.76, room to order 138. OR recommendation is 138, which matches the r
+18   78       100      106      78       212.0      Pipeline is ADEQUATE with IP=476 and B=583, ratio 0.82, leaving room to order 106 up to cap 149. Demand shows a +12.3% g
+19   66       78       78       66       83.0       Pipeline is ADEQUATE with IP=498 and B=577, ratio 0.86, leaving room to order 78 up to cap 148. Demand analysis shows fl
+20   49       59       59       49       51.0       Pipeline is ADEQUATE with IP=510 and B=570, ratio 0.90, leaving room to order 59. Demand analysis shows flat trend with 
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 10 ---
+  Demand: 92, OR rec: 151, LLM ordered: 131
+  Full Rationale:
+  The pipeline is underfilled (ratio 0.65) with room to order up to 203, but the cap is 151. The OR recommendation is 151, but trust is low due to equal-weights violation and a sustained downward demand shift (5 periods below d_bar, gap -13.8%). The carry-over insight confirms a sustained downward shift, not a spike. Trend is flat with no evidence, so no upward adjustment. I bia
+
+... [truncated]</div>
+  </div>
+</div><div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 2 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_007        0.7384     p01_stationary_L0=0.8951, p04_increasing_trend_L0=0.8458, p07_seasonal_L4=0.5405, p08_changepoint_L0=0.8671, p06_variance_L4=0.5432
+2     candidate_006        0.7284     p01_stationary_L0=0.9007, p04_increasing_trend_L0=0.8535, p07_seasonal_L4=0.5426, p08_changepoint_L0=0.8672, p06_variance_L4=0.4777
+
+======================================================================
+DETAILED TRACE: candidate_007 (mean NR = 0.7384)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5405)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4430.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        Pipeline is critically underfilled (IP=0, B=611), and OR trust is high. Trend is volatile with no confirmed direction, s
+2    114      162      162      0        0.0        Pipeline is critically underfilled (IP=167, B=608, ratio=0.28) with high OR trust and flat demand. The OR recommendation
+3    86       158      158      0        0.0        The pipeline is underfilled (IP=329, B=606, ratio=0.54) with room to order 277, but the cap is 158. Demand is flat with 
+4    118      102      102      0        0.0        Pipeline is ADEQUATE with IP=487 and B=590, ratio 0.83, leaving room to order 102 up to cap 154. Demand is flat with no 
+5    121      3        3        121      438.0      Pipeline is ADEQUATE with IP=589 and B=593, ratio 0.99, and room to order only 3. Trend is flat with no evidence (0 peri
+6    75       125      125      75       167.0      The pipeline is adequate with IP=471 and B=596, ratio 0.79, and room to order 125. The OR recommendation is 125, which m
+7    74       61       61       74       79.0       Pipeline is ADEQUATE with IP=521 and B=582, ratio 0.90, leaving room to order 61. Trend is flat with only 0 periods of e
+8    119      61       61       119      276.0      Pipeline is ADEQUATE with IP=508 and B=570, ratio 0.89, leaving room to order 61. Trend is flat with no evidence (0 peri
+9    102      123      123      102      307.0      Pipeline is ADEQUATE with IP=450 and B=574, ratio 0.78, room to order 123. Trend is flat with only 0 periods of evidence
+10   140      100      100      140      474.0      The pipeline is adequate with IP=471 and B=571, ratio 0.82, and room to order is 100, which matches the OR recommendatio
+11   78       149      149      78       243.0      Pipeline is ADEQUATE with IP=431 and B=584, ratio 0.74, room to order 153, cap 150. OR recommendation is 149, which is n
+12   158      73       73       130      520.0      Pipeline is ADEQUATE with IP=502 and B=575, ratio 0.87, leaving room to order 73 up to cap 148. Demand is flat with no t
+13   150      155      150      123      492.0      The pipeline is ADEQUATE with IP=445 and B=595, ratio 0.75, and room to order 150 up to cap 155. The OR recommendation i
+14   124      130      131      100      400.0      Pipeline is ADEQUATE with IP=477 and B=608, ratio 0.78, room to order 131. OR recommendation is 131 with high trust. Dem
+15   99       103      103      99       346.0      Pipeline is ADEQUATE with IP=507 and B=611, ratio 0.83, room to order 103. Trend is flat with only 0 periods of evidence
+16   58       100      95       58       167.0      Pipeline is ADEQUATE with IP=511 and B=606, ratio 0.84, leaving room to order 95 up to cap 156. Trend is flat with only 
+17   103      43       43       103      295.0      The pipeline is ADEQUATE with IP=553 and B=597, ratio 0.93, leaving room to order 43 up to cap 157. The OR recommendatio
+18   46       100      101      46       -17.0      Pipeline is ADEQUATE with IP=493 and B=594, ratio 0.83, room to order 101. OR recommendation is 101 with high trust. Dem
+19   101      37       37       101      201.0      Pipeline is ADEQUATE with IP=547 and B=585, ratio 0.94, leaving room to order 37. Demand shows volatile trend with no co
+20   69       99       99       69       42.0       Pipeline is ADEQUATE with IP=483 and B=583, ratio 0.83, leaving room to order 99 up to cap 155. Demand shows no clear tr
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 13 ---
+  Demand: 150, OR rec: 150, LLM ordered: 155
+  Full Rationale:
+  The pipeline is ADEQUATE with IP=445 and B=595, ratio 0.75, and room to order 150 up to cap 155. The OR recommendation is 150, which is at the cap. Demand is flat with no trend evidence (0 periods), and OR tr
+
+... [truncated]</div>
+  </div>
+</div><div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 3 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_007        0.7384     p01_stationary_L0=0.8951, p04_increasing_trend_L0=0.8458, p07_seasonal_L4=0.5405, p08_changepoint_L0=0.8671, p06_variance_L4=0.5432
+2     candidate_008        0.7328     p01_stationary_L0=0.8975, p04_increasing_trend_L0=0.8116, p07_seasonal_L4=0.5416, p08_changepoint_L0=0.8671, p06_variance_L4=0.5463
+3     candidate_006        0.7284     p01_stationary_L0=0.9007, p04_increasing_trend_L0=0.8535, p07_seasonal_L4=0.5426, p08_changepoint_L0=0.8672, p06_variance_L4=0.4777
+
+======================================================================
+DETAILED TRACE: candidate_007 (mean NR = 0.7384)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5405)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4430.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        Pipeline is critically underfilled (IP=0, B=611), and OR trust is high. Trend is volatile with no confirmed direction, s
+2    114      162      162      0        0.0        Pipeline is critically underfilled (IP=167, B=608, ratio=0.28) with high OR trust and flat demand. The OR recommendation
+3    86       158      158      0        0.0        The pipeline is underfilled (IP=329, B=606, ratio=0.54) with room to order 277, but the cap is 158. Demand is flat with 
+4    118      102      102      0        0.0        Pipeline is ADEQUATE with IP=487 and B=590, ratio 0.83, leaving room to order 102 up to cap 154. Demand is flat with no 
+5    121      3        3        121      438.0      Pipeline is ADEQUATE with IP=589 and B=593, ratio 0.99, and room to order only 3. Trend is flat with no evidence (0 peri
+6    75       125      125      75       167.0      The pipeline is adequate with IP=471 and B=596, ratio 0.79, and room to order 125. The OR recommendation is 125, which m
+7    74       61       61       74       79.0       Pipeline is ADEQUATE with IP=521 and B=582, ratio 0.90, leaving room to order 61. Trend is flat with only 0 periods of e
+8    119      61       61       119      276.0      Pipeline is ADEQUATE with IP=508 and B=570, ratio 0.89, leaving room to order 61. Trend is flat with no evidence (0 peri
+9    102      123      123      102      307.0      Pipeline is ADEQUATE with IP=450 and B=574, ratio 0.78, room to order 123. Trend is flat with only 0 periods of evidence
+10   140      100      100      140      474.0      The pipeline is adequate with IP=471 and B=571, ratio 0.82, and room to order is 100, which matches the OR recommendatio
+11   78       149      149      78       243.0      Pipeline is ADEQUATE with IP=431 and B=584, ratio 0.74, room to order 153, cap 150. OR recommendation is 149, which is n
+12   158      73       73       130      520.0      Pipeline is ADEQUATE with IP=502 and B=575, ratio 0.87, leaving room to order 73 up to cap 148. Demand is flat with no t
+13   150      155      150      123      492.0      The pipeline is ADEQUATE with IP=445 and B=595, ratio 0.75, and room to order 150 up to cap 155. The OR recommendation i
+14   124      130      131      100      400.0      Pipeline is ADEQUATE with IP=477 and B=608, ratio 0.78, room to order 131. OR recommendation is 131 with high trust. Dem
+15   99       103      103      99       346.0      Pipeline is ADEQUATE with IP=507 and B=611, ratio 0.83, room to order 103. Trend is flat with only 0 periods of evidence
+16   58       100      95       58       167.0      Pipeline is ADEQUATE with IP=511 and B=606, ratio 0.84, leaving room to order 95 up to cap 156. Trend is flat with only 
+17   103      43       43       103      295.0      The pipeline is ADEQUATE with IP=553 and B=597, ratio 0.93, leaving room to order 43 up to cap 157. The OR recommendatio
+18   46       100      101      46       -17.0      Pipeline is ADEQUATE with IP=493 and B=594, ratio 0.83, room to order 101. OR recommendation is 101 with high trust. Dem
+19   101      37       37       101      201.0      Pipeline is ADEQUATE with IP=547 and B=585, ratio 0.94, leaving room to order 37. Demand shows volatile trend with no co
+20   69       99       99       69       42.0       Pipeline is ADEQUATE with IP=483 and B=583, ratio 0.83, leaving room to order 99 up to cap 155. Demand shows no clear tr
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 13 ---
+  Demand: 150, OR rec: 150, LLM ordered: 155
+  Full Rationale:
+  The pipeline is ADEQUATE with IP=445 a
+
+... [truncated]</div>
+  </div>
+</div><div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 4 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_007        0.7384     p01_stationary_L0=0.8951, p04_increasing_trend_L0=0.8458, p07_seasonal_L4=0.5405, p08_changepoint_L0=0.8671, p06_variance_L4=0.5432
+2     candidate_008        0.7328     p01_stationary_L0=0.8975, p04_increasing_trend_L0=0.8116, p07_seasonal_L4=0.5416, p08_changepoint_L0=0.8671, p06_variance_L4=0.5463
+3     candidate_009        0.7297     p01_stationary_L0=0.8964, p04_increasing_trend_L0=0.8109, p07_seasonal_L4=0.5405, p08_changepoint_L0=0.8610, p06_variance_L4=0.5399
+4     candidate_006        0.7284     p01_stationary_L0=0.9007, p04_increasing_trend_L0=0.8535, p07_seasonal_L4=0.5426, p08_changepoint_L0=0.8672, p06_variance_L4=0.4777
+
+======================================================================
+DETAILED TRACE: candidate_007 (mean NR = 0.7384)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5405)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4430.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        Pipeline is critically underfilled (IP=0, B=611), and OR trust is high. Trend is volatile with no confirmed direction, s
+2    114      162      162      0        0.0        Pipeline is critically underfilled (IP=167, B=608, ratio=0.28) with high OR trust and flat demand. The OR recommendation
+3    86       158      158      0        0.0        The pipeline is underfilled (IP=329, B=606, ratio=0.54) with room to order 277, but the cap is 158. Demand is flat with 
+4    118      102      102      0        0.0        Pipeline is ADEQUATE with IP=487 and B=590, ratio 0.83, leaving room to order 102 up to cap 154. Demand is flat with no 
+5    121      3        3        121      438.0      Pipeline is ADEQUATE with IP=589 and B=593, ratio 0.99, and room to order only 3. Trend is flat with no evidence (0 peri
+6    75       125      125      75       167.0      The pipeline is adequate with IP=471 and B=596, ratio 0.79, and room to order 125. The OR recommendation is 125, which m
+7    74       61       61       74       79.0       Pipeline is ADEQUATE with IP=521 and B=582, ratio 0.90, leaving room to order 61. Trend is flat with only 0 periods of e
+8    119      61       61       119      276.0      Pipeline is ADEQUATE with IP=508 and B=570, ratio 0.89, leaving room to order 61. Trend is flat with no evidence (0 peri
+9    102      123      123      102      307.0      Pipeline is ADEQUATE with IP=450 and B=574, ratio 0.78, room to order 123. Trend is flat with only 0 periods of evidence
+10   140      100      100      140      474.0      The pipeline is adequate with IP=471 and B=571, ratio 0.82, and room to order is 100, which matches the OR recommendatio
+11   78       149      149      78       243.0      Pipeline is ADEQUATE with IP=431 and B=584, ratio 0.74, room to order 153, cap 150. OR recommendation is 149, which is n
+12   158      73       73       130      520.0      Pipeline is ADEQUATE with IP=502 and B=575, ratio 0.87, leaving room to order 73 up to cap 148. Demand is flat with no t
+13   150      155      150      123      492.0      The pipeline is ADEQUATE with IP=445 and B=595, ratio 0.75, and room to order 150 up to cap 155. The OR recommendation i
+14   124      130      131      100      400.0      Pipeline is ADEQUATE with IP=477 and B=608, ratio 0.78, room to order 131. OR recommendation is 131 with high trust. Dem
+15   99       103      103      99       346.0      Pipeline is ADEQUATE with IP=507 and B=611, ratio 0.83, room to order 103. Trend is flat with only 0 periods of evidence
+16   58       100      95       58       167.0      Pipeline is ADEQUATE with IP=511 and B=606, ratio 0.84, leaving room to order 95 up to cap 156. Trend is flat with only 
+17   103      43       43       103      295.0      The pipeline is ADEQUATE with IP=553 and B=597, ratio 0.93, leaving room to order 43 up to cap 157. The OR recommendatio
+18   46       100      101      46       -17.0      Pipeline is ADEQUATE with IP=493 and B=594, ratio 0.83, room to order 101. OR recommendation is 101 with high trust. Dem
+19   101      37       37       101      201.0      Pipeline is ADEQUATE with IP=547 and B=585, ratio 0.94, leaving room to order 37. Demand shows volatile trend with no co
+20   69       99       99       69       42.0       Pipeline is ADEQUATE with IP=483 and B=583, ratio 0.83, leaving room to order 99 up to cap 155. Demand shows no clear tr
+
+
+... [truncated]</div>
+  </div>
+</div><div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 5 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_007        0.7384     p01_stationary_L0=0.8951, p04_increasing_trend_L0=0.8458, p07_seasonal_L4=0.5405, p08_changepoint_L0=0.8671, p06_variance_L4=0.5432
+2     candidate_010        0.7346     p01_stationary_L0=0.8695, p04_increasing_trend_L0=0.8531, p07_seasonal_L4=0.5544, p08_changepoint_L0=0.8619, p06_variance_L4=0.5340
+3     candidate_008        0.7328     p01_stationary_L0=0.8975, p04_increasing_trend_L0=0.8116, p07_seasonal_L4=0.5416, p08_changepoint_L0=0.8671, p06_variance_L4=0.5463
+4     candidate_009        0.7297     p01_stationary_L0=0.8964, p04_increasing_trend_L0=0.8109, p07_seasonal_L4=0.5405, p08_changepoint_L0=0.8610, p06_variance_L4=0.5399
+5     candidate_006        0.7284     p01_stationary_L0=0.9007, p04_increasing_trend_L0=0.8535, p07_seasonal_L4=0.5426, p08_changepoint_L0=0.8672, p06_variance_L4=0.4777
+
+======================================================================
+DETAILED TRACE: candidate_007 (mean NR = 0.7384)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5405)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4430.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        Pipeline is critically underfilled (IP=0, B=611), and OR trust is high. Trend is volatile with no confirmed direction, s
+2    114      162      162      0        0.0        Pipeline is critically underfilled (IP=167, B=608, ratio=0.28) with high OR trust and flat demand. The OR recommendation
+3    86       158      158      0        0.0        The pipeline is underfilled (IP=329, B=606, ratio=0.54) with room to order 277, but the cap is 158. Demand is flat with 
+4    118      102      102      0        0.0        Pipeline is ADEQUATE with IP=487 and B=590, ratio 0.83, leaving room to order 102 up to cap 154. Demand is flat with no 
+5    121      3        3        121      438.0      Pipeline is ADEQUATE with IP=589 and B=593, ratio 0.99, and room to order only 3. Trend is flat with no evidence (0 peri
+6    75       125      125      75       167.0      The pipeline is adequate with IP=471 and B=596, ratio 0.79, and room to order 125. The OR recommendation is 125, which m
+7    74       61       61       74       79.0       Pipeline is ADEQUATE with IP=521 and B=582, ratio 0.90, leaving room to order 61. Trend is flat with only 0 periods of e
+8    119      61       61       119      276.0      Pipeline is ADEQUATE with IP=508 and B=570, ratio 0.89, leaving room to order 61. Trend is flat with no evidence (0 peri
+9    102      123      123      102      307.0      Pipeline is ADEQUATE with IP=450 and B=574, ratio 0.78, room to order 123. Trend is flat with only 0 periods of evidence
+10   140      100      100      140      474.0      The pipeline is adequate with IP=471 and B=571, ratio 0.82, and room to order is 100, which matches the OR recommendatio
+11   78       149      149      78       243.0      Pipeline is ADEQUATE with IP=431 and B=584, ratio 0.74, room to order 153, cap 150. OR recommendation is 149, which is n
+12   158      73       73       130      520.0      Pipeline is ADEQUATE with IP=502 and B=575, ratio 0.87, leaving room to order 73 up to cap 148. Demand is flat with no t
+13   150      155      150      123      492.0      The pipeline is ADEQUATE with IP=445 and B=595, ratio 0.75, and room to order 150 up to cap 155. The OR recommendation i
+14   124      130      131      100      400.0      Pipeline is ADEQUATE with IP=477 and B=608, ratio 0.78, room to order 131. OR recommendation is 131 with high trust. Dem
+15   99       103      103      99       346.0      Pipeline is ADEQUATE with IP=507 and B=611, ratio 0.83, room to order 103. Trend is flat with only 0 periods of evidence
+16   58       100      95       58       167.0      Pipeline is ADEQUATE with IP=511 and B=606, ratio 0.84, leaving room to order 95 up to cap 156. Trend is flat with only 
+17   103      43       43       103      295.0      The pipeline is ADEQUATE with IP=553 and B=597, ratio 0.93, leaving room to order 43 up to cap 157. The OR recommendatio
+18   46       100      101      46       -17.0      Pipeline is ADEQUATE with IP=493 and B=594, ratio 0.83, room to order 101. OR recommendation is 101 with high trust. Dem
+19   101      37       37       101      201.0      Pipeline is ADEQUATE with IP=547 and B=585, ratio 0.94, leaving room to order 37. Demand shows volatile trend with no co
+20 
+
+... [truncated]</div>
+  </div>
+</div>
+<div style="text-align:center; margin-top:48px; padding:24px;
+  border-top:1px solid var(--border); color: var(--muted); font-size:0.8em;">
+  Meta-Harness Report · Plan B (深 Trace) · Generated 2026-05-18T00:39:51.972316
+  · <a href="https://arxiv.org/abs/2603.28052" style="color:var(--accent);">
+    arXiv:2603.28052</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,224 @@
+======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_007        0.7384     p01_stationary_L0=0.8951, p04_increasing_trend_L0=0.8458, p07_seasonal_L4=0.5405, p08_changepoint_L0=0.8671, p06_variance_L4=0.5432
+2     candidate_006        0.7284     p01_stationary_L0=0.9007, p04_increasing_trend_L0=0.8535, p07_seasonal_L4=0.5426, p08_changepoint_L0=0.8672, p06_variance_L4=0.4777
+
+======================================================================
+DETAILED TRACE: candidate_007 (mean NR = 0.7384)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5405)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4430.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        Pipeline is critically underfilled (IP=0, B=611), and OR trust is high. Trend is volatile with no confirmed direction, s
+2    114      162      162      0        0.0        Pipeline is critically underfilled (IP=167, B=608, ratio=0.28) with high OR trust and flat demand. The OR recommendation
+3    86       158      158      0        0.0        The pipeline is underfilled (IP=329, B=606, ratio=0.54) with room to order 277, but the cap is 158. Demand is flat with 
+4    118      102      102      0        0.0        Pipeline is ADEQUATE with IP=487 and B=590, ratio 0.83, leaving room to order 102 up to cap 154. Demand is flat with no 
+5    121      3        3        121      438.0      Pipeline is ADEQUATE with IP=589 and B=593, ratio 0.99, and room to order only 3. Trend is flat with no evidence (0 peri
+6    75       125      125      75       167.0      The pipeline is adequate with IP=471 and B=596, ratio 0.79, and room to order 125. The OR recommendation is 125, which m
+7    74       61       61       74       79.0       Pipeline is ADEQUATE with IP=521 and B=582, ratio 0.90, leaving room to order 61. Trend is flat with only 0 periods of e
+8    119      61       61       119      276.0      Pipeline is ADEQUATE with IP=508 and B=570, ratio 0.89, leaving room to order 61. Trend is flat with no evidence (0 peri
+9    102      123      123      102      307.0      Pipeline is ADEQUATE with IP=450 and B=574, ratio 0.78, room to order 123. Trend is flat with only 0 periods of evidence
+10   140      100      100      140      474.0      The pipeline is adequate with IP=471 and B=571, ratio 0.82, and room to order is 100, which matches the OR recommendatio
+11   78       149      149      78       243.0      Pipeline is ADEQUATE with IP=431 and B=584, ratio 0.74, room to order 153, cap 150. OR recommendation is 149, which is n
+12   158      73       73       130      520.0      Pipeline is ADEQUATE with IP=502 and B=575, ratio 0.87, leaving room to order 73 up to cap 148. Demand is flat with no t
+13   150      155      150      123      492.0      The pipeline is ADEQUATE with IP=445 and B=595, ratio 0.75, and room to order 150 up to cap 155. The OR recommendation i
+14   124      130      131      100      400.0      Pipeline is ADEQUATE with IP=477 and B=608, ratio 0.78, room to order 131. OR recommendation is 131 with high trust. Dem
+15   99       103      103      99       346.0      Pipeline is ADEQUATE with IP=507 and B=611, ratio 0.83, room to order 103. Trend is flat with only 0 periods of evidence
+16   58       100      95       58       167.0      Pipeline is ADEQUATE with IP=511 and B=606, ratio 0.84, leaving room to order 95 up to cap 156. Trend is flat with only 
+17   103      43       43       103      295.0      The pipeline is ADEQUATE with IP=553 and B=597, ratio 0.93, leaving room to order 43 up to cap 157. The OR recommendatio
+18   46       100      101      46       -17.0      Pipeline is ADEQUATE with IP=493 and B=594, ratio 0.83, room to order 101. OR recommendation is 101 with high trust. Dem
+19   101      37       37       101      201.0      Pipeline is ADEQUATE with IP=547 and B=585, ratio 0.94, leaving room to order 37. Demand shows volatile trend with no co
+20   69       99       99       69       42.0       Pipeline is ADEQUATE with IP=483 and B=583, ratio 0.83, leaving room to order 99 up to cap 155. Demand shows no clear tr
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 13 ---
+  Demand: 150, OR rec: 150, LLM ordered: 155
+  Full Rationale:
+  The pipeline is ADEQUATE with IP=445 and B=595, ratio 0.75, and room to order 150 up to cap 155. The OR recommendation is 150, which is at the cap. Demand is flat with no trend evidence (0 periods), and OR trust is high. There are no alerts. Since the pipeline is not overfilled and demand is stable, I follow the OR recommendation closely. However, given the high trust and no adverse signals, I order the full cap of 155 to maximize service level, as the critical fractile is high (0.8) and orderin
+
+--- Period 14 ---
+  Demand: 124, OR rec: 131, LLM ordered: 130
+  Full Rationale:
+  Pipeline is ADEQUATE with IP=477 and B=608, ratio 0.78, room to order 131. OR recommendation is 131 with high trust. Demand shows no confirmed trend (evidence 0 periods) and is volatile. No alerts. Since pipeline is not overfilled and OR trust is high, I follow the OR recommendation closely. However, given volatility and no trend confirmation, I bias slightly downward to be safe, ordering 130 instead of 131.
+
+--- Period 16 ---
+  Demand: 58, OR rec: 95, LLM ordered: 100
+  Full Rationale:
+  Pipeline is ADEQUATE with IP=511 and B=606, ratio 0.84, leaving room to order 95 up to cap 156. Trend is flat with only 0 periods of evidence, so no upward adjustment warranted. OR trust is low due to equal-weights violation causing underestimation of demand (gap 9.4%), suggesting a +8 bias. However, since the trend is unconfirmed and pipeline is adequate, I bias downward to be safe. I start from OR recommendation of 95, add the suggested bias of +8 to get 103, but then reduce slightly to 100 to
+
+--- Period 18 ---
+  Demand: 46, OR rec: 101, LLM ordered: 100
+  Full Rationale:
+  Pipeline is ADEQUATE with IP=493 and B=594, ratio 0.83, room to order 101. OR recommendation is 101 with high trust. Demand shows no confirmed trend (evidence 0 periods) and is volatile, but gap vs d_bar is +5.3%. No alerts. Since pipeline is not overfilled and OR trust is high, I follow the OR recommendation of 101, but given volatility and no strong trend signal, I bias slightly downward to 100 to be cautious.
+
+### Instance: p06_variance_L4 (NR = 0.5432)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4467.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141      141      0        0.0        Pipeline is critically underfilled (IP=0, B=541), and OR trust is high. Trend is flat with no confirmed direction, so I 
+2    155      143      142      0        0.0        The pipeline is critically underfilled (IP=141, B=555, ratio=0.25), and the OR recommendation is 142, which is near the 
+3    128      159      159      0        0.0        Pipeline is underfilled (IP=284, B=603, ratio=0.47) with room to order 319, but cap is 159. Trend is flat with only 0 pe
+4    117      159      159      0        0.0        Pipeline is ADEQUATE with IP=443 and B=612, ratio 0.72, room to order 169 but cap is 159. OR recommendation is 159, whic
+5    98       9        9        98       349.0      Pipeline is ADEQUATE with IP close to B (ratio 0.98), leaving only 9 units room to order. Trend is flat with no confirme
+6    98       89       89       98       304.0      The pipeline is adequate with IP=513 and B=603, leaving room to order 89 up to a cap of 154. The OR recommendation is 89
+7    47       90       90       47       -12.0      The pipeline is adequate with IP=504 and B=595, ratio 0.85, leaving room to order 90 up to cap 151. Demand is flat with 
+8    83       30       30       83       56.0       Pipeline is ADEQUATE with IP=547 and B=578, ratio 0.95, leaving room to order 30. Trend is flat with only 0 periods of e
+9    123      74       74       123      330.0      Pipeline is ADEQUATE with IP=494 and B=569, ratio 0.87, room to order 74. Demand shows no confirmed trend (0 periods evi
+10   92       120      129      92       209.0      Pipeline is ADEQUATE with IP=445 and B=575, ratio 0.77, leaving room to order 129 up to cap 151. Demand analysis shows v
+11   119      95       95       119      346.0      Pipeline is ADEQUATE with IP=473 and B=569, ratio 0.83, room to order 95. Trend is flat with only 0 periods of evidence,
+12   84       123      123      84       260.0      Pipeline is ADEQUATE with IP=449 and B=573, ratio 0.78, leaving room to order 123. Trend is flat with only 0 periods of 
+13   102      70       77       102      360.0      Pipeline is ADEQUATE with IP=488 and B=566, ratio 0.86, leaving room to order 77 up to cap 147. Demand is flat with no c
+14   130      98       108      130      482.0      Pipeline is ADEQUATE with IP=456 and B=564, ratio 0.81, leaving room to order 108 up to cap 146. Demand is flat with no 
+15   123      140      147      123      482.0      Pipeline is ADEQUATE with IP=424 and B=571, ratio 0.74, room to order 147. Trend is flat with only 0 periods of evidence
+16   139      124      134      133      532.0      The pipeline is ADEQUATE with IP=441 and B=575, leaving room to order 134 up to cap 147. The OR recommendation is 134, w
+17   107      140      149      70       280.0      The pipeline is ADEQUATE with IP=432 and B=584, ratio 0.74, and room to order 151 with cap 150. The OR recommendation is
+18   78       80       80       78       292.0      Pipeline is ADEQUATE with IP=502 and B=583, ratio 0.86, leaving room to order 80. Demand is flat with no confirmed trend
+19   66       62       72       66       170.0      Pipeline is ADEQUATE with IP=504 and B=577, ratio 0.87, leaving room to order 72 up to cap 148. Trend is flat with no ev
+20   49       69       69       49       27.0       Pipeline is ADEQUATE with IP=500 and B=570, ratio 0.88, leaving room to order 69. Demand trend is flat with only 0 perio
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 14 ---
+  Demand: 130, OR rec: 108, LLM ordered: 98
+  Full Rationale:
+  Pipeline is ADEQUATE with IP=456 and B=564, ratio 0.81, leaving room to order 108 up to cap 146. Demand is flat with no confirmed trend (0 periods evidence), but the 5-period average is 93.5, 9.3% below d_bar=103.1, and the OR assumption audit shows equal-weight bias causing overestimation, with suggested bias of -10. The carry-over insight also notes a sustained bias of -7. Given low OR trust and flat demand, I start from OR recommendation of 108 and adjust downward by the bias of -10 to 98, wh
+
+--- Period 15 ---
+  Demand: 123, OR rec: 147, LLM ordered: 140
+  Full Rationale:
+  Pipeline is ADEQUATE with IP=424 and B=571, ratio 0.74, room to order 147. Trend is flat with only 0 periods of evidence, so no trend adjustment. OR trust is high, and no alerts are present. The carry-over insight suggests a bias of -10 due to equal-weight overestimation, but the OR assumption audit found equal-weight violation and suggested no bias. Given the high trust in OR and no strong signals to deviate, I start from OR recommendation of 147. However, the carry-over insight and the fact th
+
+--- Period 16 ---
+  Demand: 139, OR rec: 134, LLM ordered: 124
+  Full Rationale:
+  The pipeline is ADEQUATE with IP=441 and B=575, leaving room to order 134 up to cap 147. The OR recommendation is 134, which is at the room-to-order limit. Trend is flat with only 0 periods of evidence, so no upward adjustment is warranted. OR trust is high, and there are no alerts. The carry-over insight suggests a bias of -10 due to equal-weight overestimation, but the OR assumption audit found no equal-weight violation (equal-w=False) and suggests bias +0. However, the carry-over insight is a
+
+--- Period 17 ---
+  Demand: 107, OR rec: 149, LLM ordered: 140
+  Full Rationale:
+  The pipeline is ADEQUATE with IP=432 and B=584, ratio 0.74, and room to order 151 with cap 150. The OR recommendation is 149, which is near the cap. The trend is flat with only 0 periods of evidence, so no upward adjustment is warranted. The carry-over insight suggests a bias of -10 due to equal-weight overestimation, and the OR trust is high but the equal-w assumption is violated. Given the pipeline is adequate and the trend is unconfirmed, I bias downward slightly from the OR recommendation to
+
+--- Period 19 ---
+  Demand: 66, OR rec: 72, LLM ordered: 62
+  Full Rationale:
+  Pipeline is ADEQUATE with IP=504 and B=577, ratio 0.87, leaving room to order 72 up to cap 148. Trend is flat with no evidence (0 periods), so no trend adjustment. OR trust is high, and no alerts are present. The carry-over insight suggests a bias of -10 due to equal-weight overestimation, but the OR assumption audit found no equal-weight violation and suggests bias +0. Given the high trust and flat demand, I start from OR recommendation of 72. The carry-over insight is from a previous period an
+
+======================================================================
+DETAILED TRACE: candidate_006 (mean NR = 0.7284)
+======================================================================
+
+### Instance: p06_variance_L4 (NR = 0.4777)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $3929.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      142      141      0        0.0        Pipeline is critically underfilled (IP=0, B=541), and OR trust is high. Trend is flat with no evidence, so no adjustment
+2    155      142      142      0        0.0        The pipeline is critically underfilled (IP=142, B=555, ratio=0.26), indicating high stockout risk. The OR recommendation
+3    128      159      159      0        0.0        The pipeline is critically underfilled (IP=284, B=603, ratio=0.47) with high stockout risk. Demand is flat with no confi
+4    117      159      159      0        0.0        Pipeline is ADEQUATE with IP=443 and B=612, ratio 0.72, room to order 169 but cap is 159. OR recommendation is 159, whic
+5    98       9        9        98       348.0      The pipeline is adequate with IP close to B, leaving only 9 units of room to order. The trend is flat with no evidence, 
+6    98       89       89       98       304.0      The pipeline is ADEQUATE with IP=513 and B=603, ratio 0.85, leaving room to order 89 up to cap 154. Demand is flat with 
+7    47       90       90       47       -12.0      Pipeline is ADEQUATE with IP=504 and B=595, ratio 0.85, leaving room to order 90 up to cap 151. Demand is flat with no c
+8    83       30       30       83       56.0       The pipeline is adequate with IP=547 and B=578, ratio 0.95, leaving room to order 30. The OR recommendation is 30, which
+9    123      0        74       123      330.0      Pipeline is ADEQUATE with IP=494 and B=569, ratio 0.87, leaving room to order 74 up to cap 151. Demand is flat with no c
+10   92       131      151      92       209.0      The pipeline is underfilled (ratio 0.65) with room to order up to 203, but the cap is 151. The OR recommendation is 151,
+11   119      0        149      119      346.0      The pipeline is adequate with IP=410 and B=569, ratio 0.72, and room to order 158 but cap is 149. The OR recommendation 
+12   84       130      148      84       260.0      The pipeline is underfilled (ratio 0.51) with room to order 281, but the cap is 149. The OR recommendation is 148, which
+13   102      140      147      76       304.0      The pipeline is underfilled (ratio 0.60) with room to order 228, but the cap is 147. The OR recommendation is 147 with h
+14   130      145      145      130      519.0      The pipeline is ADEQUATE with IP=401 and B=564, leaving room to order 163, but the cap is 146. The OR recommendation is 
+15   123      147      147      1        4.0        The pipeline is ADEQUATE with IP=416 and B=571, leaving room to order up to 155, but the cap is 147. The OR recommendati
+16   139      13       13       130      520.0      Pipeline is ADEQUATE with IP=562 and B=575, ratio 0.98, leaving only 13 units room to order. Demand is flat with no conf
+17   107      138      138      107      395.0      Pipeline is ADEQUATE with IP=445 and B=584, ratio 0.76, room to order 138. OR recommendation is 138, which matches the r
+18   78       100      106      78       212.0      Pipeline is ADEQUATE with IP=476 and B=583, ratio 0.82, leaving room to order 106 up to cap 149. Demand shows a +12.3% g
+19   66       78       78       66       83.0       Pipeline is ADEQUATE with IP=498 and B=577, ratio 0.86, leaving room to order 78 up to cap 148. Demand analysis shows fl
+20   49       59       59       49       51.0       Pipeline is ADEQUATE with IP=510 and B=570, ratio 0.90, leaving room to order 59. Demand analysis shows flat trend with 
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 10 ---
+  Demand: 92, OR rec: 151, LLM ordered: 131
+  Full Rationale:
+  The pipeline is underfilled (ratio 0.65) with room to order up to 203, but the cap is 151. The OR recommendation is 151, but trust is low due to equal-weights violation and a sustained downward demand shift (5 periods below d_bar, gap -13.8%). The carry-over insight confirms a sustained downward shift, not a spike. Trend is flat with no evidence, so no upward adjustment. I bias downward from OR by the suggested bias of -20, resulting in 131, which is within the cap and safer given uncertainty.
+
+--- Period 11 ---
+  Demand: 119, OR rec: 149, LLM ordered: 0
+  Full Rationale:
+  The pipeline is adequate with IP=410 and B=569, ratio 0.72, and room to order 158 but cap is 149. The OR recommendation is 149, but trust is low due to equal-weights violation and sustained downward demand (gap -14.3% for 5 periods, confirmed by carry-over insight). Trend is flat with no evidence, so no upward adjustment. The sustained deviation alert (demand consistently below d_bar) and OR bias of -21 suggest reducing order. I bias downward to 0 to avoid overstocking given the downward shift a
+
+--- Period 12 ---
+  Demand: 84, OR rec: 148, LLM ordered: 130
+  Full Rationale:
+  The pipeline is underfilled (ratio 0.51) with room to order 281, but the cap is 149. The OR recommendation is 148, which is near the cap. Demand has been consistently below d_bar for 5 periods (gap -11.0%), and the carry-over insight notes a sustained downward shift. Although the trend is flat with only 0 periods of evidence, the sustained low demand suggests caution. The OR trust is high, so I start from 148. However, the consistent underperformance and the carry-over insight of a downward shif
+
+--- Period 13 ---
+  Demand: 102, OR rec: 147, LLM ordered: 140
+  Full Rationale:
+  The pipeline is underfilled (ratio 0.60) with room to order 228, but the cap is 147. The OR recommendation is 147 with high trust. Demand is flat with no confirmed trend, and the carry-over insight notes a sustained downward shift (5 periods below d_bar, gap -11.0% previously, now -2.8%). The gap has narrowed, suggesting the downward shift may be stabilizing. Given high OR trust and no alerts, I follow the OR recommendation of 147, but I bias slightly downward due to the sustained downward deman
+
+--- Period 18 ---
+  Demand: 78, OR rec: 106, LLM ordered: 100
+  Full Rationale:
+  Pipeline is ADEQUATE with IP=476 and B=583, ratio 0.82, leaving room to order 106 up to cap 149. Demand shows a +12.3% gap vs d_bar, but trend is flat with only 0 periods of evidence, so not yet confirmed. OR trust is low due to equal-weights violation causing underestimation, with suggested bias of +13. However, the flat trend and lack of sustained deviation lead me to bias downward for safety. I start from OR recommendation of 106, but reduce slightly to 100 to avoid over-ordering given uncert
+
+### Instance: p07_seasonal_L4 (NR = 0.5426)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4447.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        Pipeline is critically underfilled (IP=0, B=611), and OR trust is high with no trend deviation. The OR recommendation of
+2    114      162      162      0        0.0        Pipeline is critically underfilled (IP=167, B=608, ratio=0.28) with high OR trust. Trend is flat with no confirmed direc
+3    86       158      158      0        0.0        Pipeline is underfilled (IP=329, B=606, ratio=0.54) with room to order 277, but cap is 158. Demand is flat with no confi
+4    118      102      102      0        0.0        Pipeline is ADEQUATE with IP=487 and B=590, ratio 0.83, leaving room to order 102 up to cap 154. Demand trend is flat wi
+5    121      3        3        121      438.0      Pipeline is ADEQUATE with IP=589 and B=593, ratio 0.99, and room to order only 3. Trend is flat with no evidence (0 peri
+6    75       125      125      75       167.0      Pipeline is ADEQUATE with IP=471 and B=596, ratio 0.79, room to order 125. Trend is flat with only 0 periods of evidence
+7    74       61       61       74       79.0       Pipeline is ADEQUATE with IP=521 and B=582, ratio 0.90, leaving room to order 61 up to cap 150. Demand is flat with no c
+8    119      61       61       119      276.0      Pipeline is ADEQUATE with IP=508 and B=570, ratio 0.89, leaving room to order 61. Trend is flat with only 0 periods of e
+9    102      123      123      102      307.0      Pipeline is ADEQUATE with IP=450 and B=574, ratio 0.78, room to order 123. Trend is flat with only 0 periods of evidence
+10   140      100      100      140      474.0      The pipeline is adequate with IP=471 and B=571, ratio 0.82, and room to order is 100, which matches the OR recommendatio
+11   78       149      149      78       243.0      The pipeline is adequate with IP=431 and B=584, leaving room to order 153, but the cap is 150. The OR recommendation is 
+12   158      73       73       130      520.0      Pipeline is ADEQUATE with IP=502 and B=575, ratio 0.87, leaving room to order 73 up to cap 148. Demand is flat with no c
+13   150      150      150      123      492.0      Pipeline is ADEQUATE with IP=445 and B=595, ratio 0.75, room to order 150. Trend is flat with only 0 periods of evidence
+14   124      118      136      100      400.0      Pipeline is ADEQUATE with IP=472 and B=608, ratio 0.78, room to order 136. Trend is flat with only 0 periods of evidence
+15   99       130      120      99       346.0      Pipeline is ADEQUATE with IP=490 and B=611, ratio 0.80, leaving room to order 120. Demand shows a flat trend with no con
+16   58       85       85       58       167.0      Pipeline is ADEQUATE with IP=521 and B=606, leaving room to order 85, which matches the OR recommendation. Trend is flat
+17   103      48       48       103      300.0      The pipeline is adequate with IP=548 and B=597, leaving room to order 48. The OR recommendation is 48, which aligns with
+18   46       101      101      46       0.0        Pipeline is ADEQUATE with IP=493 and B=594, ratio 0.83, leaving room to order 101. Trend is flat with only 0 periods of 
+19   101      0        36       101      191.0      The pipeline is adequate with IP=548 and B=585, leaving room to order 36. The OR recommendation is 36, but trust is low 
+20   69       105      135      69       47.0       The pipeline is adequate with IP=447 and B=583, leaving room to order 135 up to cap 155. The demand analysis shows a fla
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 14 ---
+  Demand: 124, OR rec: 136, LLM ordered: 118
+  Full Rationale:
+  Pipeline is ADEQUATE with IP=472 and B=608, ratio 0.78, room to order 136. Trend is flat with only 0 periods of evidence, so no upward adjustment warranted. OR trust is low due to equal-weights violation causing underestimation bias of +18. However, since trend is not confirmed and pipeline is adequate, I bias downward to avoid over-ordering. I start from OR recommendation of 136, but reduce by the suggested bias of 18 to account for the underestimation risk, resulting in 118. This is within cap
+
+--- Period 15 ---
+  Demand: 99, OR rec: 120, LLM ordered: 130
+  Full Rationale:
+  Pipeline is ADEQUATE with IP=490 and B=611, ratio 0.80, leaving room to order 120. Demand shows a flat trend with no confirmed evidence (0 periods), but the OR assumption audit reveals a persistent bias: equal-weights assumption underestimates demand by ~16.7%, consistent with the carry-over insight of ~13% underestimation. OR trust is low, and the suggested bias is +20. However, since the trend is flat and not yet confirmed, I bias downward from the full adjustment to avoid overreacting. I incr
+
+--- Period 19 ---
+  Demand: 101, OR rec: 36, LLM ordered: 0
+  Full Rationale:
+  The pipeline is adequate with IP=548 and B=585, leaving room to order 36. The OR recommendation is 36, but trust is low due to a confirmed downward trend (4 periods evidence, slope -15.2/p) and equal-weights bias causing overestimation by ~17%. The Analyst suggests a bias of -6, and the carry-over insight confirms persistent underestimation of demand. Given the downward trend and low OR trust, I reduce the order to 0 to avoid overstocking, as ordering less is safer when demand is declining.
+
+--- Period 20 ---
+  Demand: 69, OR rec: 135, LLM ordered: 105
+  Full Rationale:
+  The pipeline is adequate with IP=447 and B=583, leaving room to order 135 up to cap 155. The demand analysis shows a flat trend with only 0 periods of evidence, contradicting the carry-over insight of a sustained downward trend. However, the OR assumption audit reveals low trust due to equal-weights violation and a 22.6% gap, suggesting OR overestimates demand. The carry-over insight from previous periods indicates a confirmed downward trend, which I weight heavily. Given the low OR trust and th

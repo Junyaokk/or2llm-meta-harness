@@ -1,0 +1,78 @@
+{
+  "best_candidate": "candidate_004",
+  "best_mean_nr": 0.7424616741573059,
+  "baseline_mean_nr": 0.6632854130595917,
+  "improvement": 0.07917626109771425,
+  "improvement_pct": 11.93698211038463,
+  "all_scores": [
+    {
+      "candidate_id": "candidate_004",
+      "mean_nr": 0.7424616741573059,
+      "per_instance_nr": {
+        "p01_stationary_L0": 0.8861575178997614,
+        "p04_increasing_trend_L0": 0.8682275907715582,
+        "p07_seasonal_L4": 0.5406295754026355,
+        "p08_changepoint_L0": 0.8701146983857264,
+        "p06_variance_L4": 0.5471789883268483
+      }
+    },
+    {
+      "candidate_id": "candidate_002",
+      "mean_nr": 0.7418403850147104,
+      "per_instance_nr": {
+        "p01_stationary_L0": 0.8954653937947494,
+        "p04_increasing_trend_L0": 0.8680384833585476,
+        "p07_seasonal_L4": 0.5245241581259151,
+        "p08_changepoint_L0": 0.8760620220900595,
+        "p06_variance_L4": 0.5451118677042801
+      }
+    },
+    {
+      "candidate_id": "candidate_005",
+      "mean_nr": 0.7325287572300379,
+      "per_instance_nr": {
+        "p01_stationary_L0": 0.8963007159904535,
+        "p04_increasing_trend_L0": 0.8044038388804842,
+        "p07_seasonal_L4": 0.5416056612981942,
+        "p08_changepoint_L0": 0.8701146983857264,
+        "p06_variance_L4": 0.5502188715953308
+      }
+    },
+    {
+      "candidate_id": "candidate_001",
+      "mean_nr": 0.7285425027648971,
+      "per_instance_nr": {
+        "p01_stationary_L0": 0.8741050119331742,
+        "p04_increasing_trend_L0": 0.8381831505295008,
+        "p07_seasonal_L4": 0.5361151781356759,
+        "p08_changepoint_L0": 0.8634239592183517,
+        "p06_variance_L4": 0.5308852140077821
+      }
+    },
+    {
+      "candidate_id": "candidate_003",
+      "mean_nr": 0.7237768984605519,
+      "per_instance_nr": {
+        "p01_stationary_L0": 0.8236276849642005,
+        "p04_increasing_trend_L0": 0.8722697617246596,
+        "p07_seasonal_L4": 0.568081991215227,
+        "p08_changepoint_L0": 0.8257221750212405,
+        "p06_variance_L4": 0.5291828793774319
+      }
+    },
+    {
+      "candidate_id": "candidate_000",
+      "mean_nr": 0.6632854130595917,
+      "per_instance_nr": {
+        "p01_stationary_L0": 0.8844868735083532,
+        "p04_increasing_trend_L0": 0.883178895612708,
+        "p07_seasonal_L4": 0.3964128843338214,
+        "p08_changepoint_L0": 0.8557774001699235,
+        "p06_variance_L4": 0.29657101167315175
+      }
+    }
+  ],
+  "n_candidates": 6,
+  "n_instances": 5,
+  "n_periods": 20
+}

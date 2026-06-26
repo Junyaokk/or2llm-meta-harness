@@ -1,0 +1,353 @@
+======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_h2u_007    0.7481     p01_stationary_L0=0.9026, p04_increasing_trend_L0=0.8754, p07_seasonal_L4=0.5405, p08_changepoint_L0=0.8752, p06_variance_L4=0.5469
+2     candidate_h2u_008    0.7471     p01_stationary_L0=0.8947, p04_increasing_trend_L0=0.8676, p07_seasonal_L4=0.5413, p08_changepoint_L0=0.8603, p06_variance_L4=0.5715
+3     candidate_h2u_002    0.7457     p01_stationary_L0=0.8928, p04_increasing_trend_L0=0.8751, p07_seasonal_L4=0.5334, p08_changepoint_L0=0.8696, p06_variance_L4=0.5577
+4     candidate_h2u_000    0.7455     p01_stationary_L0=0.8860, p04_increasing_trend_L0=0.8715, p07_seasonal_L4=0.5365, p08_changepoint_L0=0.8632, p06_variance_L4=0.5700
+5     candidate_h2u_001    0.7447     p01_stationary_L0=0.8866, p04_increasing_trend_L0=0.8482, p07_seasonal_L4=0.5471, p08_changepoint_L0=0.8820, p06_variance_L4=0.5595
+6     candidate_h2u_004    0.7437     p01_stationary_L0=0.8965, p04_increasing_trend_L0=0.8726, p07_seasonal_L4=0.5335, p08_changepoint_L0=0.8701, p06_variance_L4=0.5458
+7     candidate_h2u_005    0.7306     p01_stationary_L0=0.8979, p04_increasing_trend_L0=0.8029, p07_seasonal_L4=0.5381, p08_changepoint_L0=0.8681, p06_variance_L4=0.5461
+8     candidate_h2u_006    0.7151     p01_stationary_L0=0.9011, p04_increasing_trend_L0=0.7281, p07_seasonal_L4=0.5317, p08_changepoint_L0=0.8692, p06_variance_L4=0.5454
+9     candidate_h2u_003    0.7129     p01_stationary_L0=0.9161, p04_increasing_trend_L0=0.7253, p07_seasonal_L4=0.5278, p08_changepoint_L0=0.8638, p06_variance_L4=0.5315
+
+======================================================================
+DETAILED TRACE: candidate_h2u_007 (mean NR = 0.7481)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5405)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4430.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        (1) Self-calibration: No prior periods, so no carry-over insight to check. Error count = 0 (CONFIDENT). (2) Analyst: Pip
+2    114      162      162      0        0.0        (1) Self-calibration: This is period 2, so there is only one prior carry-over insight from period 1. The prior insight w
+3    86       158      158      0        0.0        (1) Self-calibration: Previous carry-over insight was empty (no pattern), so NEUTRAL. Period 1 insight was also empty. I
+4    118      99       102      0        0.0        (1) Self-calibration: Last period's carry-over insight was 'Demand down 2 of last 3 periods, OR overestimating' (from pe
+5    121      6        6        121      438.0      (1) Self-calibration: Last period's carry-over insight was empty (no pattern), so NEUTRAL. The period before that (perio
+6    75       125      125      75       167.0      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+7    74       61       61       74       79.0       (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+8    119      55       61       119      279.0      (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR lagging ~15%' (from peri
+9    102      125      129      102      307.0      (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR overestimating ~10%'. Th
+10   140      104      104      140      474.0      (1) Self-calibration: Last period's carry-over insight was 'Demand down 2 of last 3 periods, OR overestimating ~10%'. Th
+11   78       149      149      78       243.0      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+12   158      73       73       124      496.0      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+13   150      144      144      125      500.0      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+14   124      158      138      104      416.0      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+15   99       92       86       99       346.0      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+16   58       85       89       58       167.0      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+17   103      0        52       103      306.0      (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR lagging ~10%' (from peri
+18   46       146      153      46       -34.0      (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR lagging ~15%' (predicted
+19   101      43       43       101      195.0      (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR overestimating ~25%' — t
+20   69       99       99       69       51.0       (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR overestimating ~15%' (fr
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 14 ---
+  Demand: 124, OR rec: 138, LLM ordered: 158
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period 12). Period 13 demand was 150, above recent average (131.5) → insight CORRECT. Period 12 insight was 'Demand up 3 of last 4 periods, OR lagging' and period 12 demand was 158, above recent average → CORRECT. Error count = 0 → CONFIDENT. (2) Analyst: Pipeline ADEQUATE (IP/B=0.77), trend volatile with high CV, OR trust low due to equal-weights bias (gap +18.8%), suggested bias +2
+
+--- Period 15 ---
+  Demand: 99, OR rec: 86, LLM ordered: 92
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period 13). Period 14 demand was 124, which is below the recent 5-period average of 127.5, so the insight was WRONG. The period before that (period 13) had insight 'Demand up 3 of last 4 periods, OR lagging ~10%' and demand was 150, above the recent average, so that insight was CORRECT. Thus, 1 of last 2 directional insights was wrong → CAUTIOUS. (2) Analyst: Pipeline ADEQUATE (IP/B=
+
+--- Period 16 ---
+  Demand: 58, OR rec: 89, LLM ordered: 85
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period 14). That predicted UP. Period 15 demand was 99, which is below the recent average (132.8) — so the insight was WRONG. The period before that (period 14) had insight 'High-Low alternating pattern, OR consistently high on low periods' — that was non-directional (NEUTRAL). So error count = 1 (one wrong out of last 2 directional insights) → CAUTIOUS. (2) Analyst: Pipeline ADEQUAT
+
+--- Period 17 ---
+  Demand: 103, OR rec: 52, LLM ordered: 0
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR lagging ~10%' (from period 15). That predicted DOWN. Period 16 demand was 58, which is below the recent average (107.8) — insight was CORRECT. The period before that (period 15), the insight was 'Demand volatile, no sustained pattern' — non-directional, NEUTRAL. So last 2 directional insights: 1 correct, 1 neutral → 0 errors. CONFIDENT. (2) Analyst: Pipeline ADEQUATE (IP/B=0.91), room to order 52. Tre
+
+--- Period 18 ---
+  Demand: 46, OR rec: 153, LLM ordered: 146
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR lagging ~15%' (predicted DOWN). Period 17 demand was 103, which is below the recent average of ~106 (from periods 12-16: 119,102,140,78,158 average=119.4, but recent 5p avg=96.0). Actually 103 is above the 5p avg of 96.0, so the insight was WRONG (predicted down but demand was above recent average). The period before that (period 16) had insight 'Demand down 2 of last 3 periods, OR lagging ~10%' (pred
+
+### Instance: p06_variance_L4 (NR = 0.5469)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4498.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141.89556059321282 141      0        0.0        (1) Self-calibration: No prior periods, so no carry-over insight to check. Error count = 0 (no insights to evaluate). Co
+2    155      142.7822216182063 142      0        0.0        (1) Self-calibration: This is period 2, so there is only one previous carry-over insight from period 1. The previous ins
+3    128      159      159      0        0.0        (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+4    117      159      159      0        0.0        (1) Self-calibration: Last period's carry-over insight was 'Demand up 3 of last 4 periods, OR lagging ~15%' (from period
+5    98       9        9        98       348.1      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+6    98       88       88       98       303.3      (1) Self-calibration: Last period's carry-over insight was 'Demand down 2 of last 3 periods, OR may overestimate' — dema
+7    47       80       91       47       -12.7      (1) Self-calibration: Last period's carry-over insight was 'Demand down 2 of last 3 periods, OR may be high' (directiona
+8    83       0        41       83       55.3       (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR lagging ~15%' (from peri
+9    123      114      114      123      329.3      (1) Self-calibration: Last period's carry-over insight was 'Demand down 3 of last 4 periods, OR overestimating ~20%' — t
+10   92       136      129      92       209.3      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+11   119      88       80       119      356.3      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+12   84       114      114      84       300.3      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+13   102      78       78       102      360.3      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+14   130      100      100      130      466.3      (1) Self-calibration: Last period's carry-over insight was 'Demand down 2 of last 3 periods, OR may overestimate' (from 
+15   123      137      137      123      473.3      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+16   139      147      127      132.67778221141913 530.7      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+17   107      130      121      78.0     312.0      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+18   78       73       68       78       290.0      (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period
+19   66       64       67       66       171.0      (1) Self-calibration: Last period's carry-over insight was 'Demand down 2 of last 3 periods, OR lagging ~7%' (from perio
+20   49       50       62       49       5.0        (1) Self-calibration: Last period's carry-over insight was 'Demand down 2 of last 3 periods, OR lagging ~-5%' (direction
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 16 ---
+  Demand: 139, OR rec: 127, LLM ordered: 147
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period 14). Period 15 demand was 123, which is above the recent average of ~109.8, so the insight was CORRECT. The period before that (period 14) had insight 'Demand up 3 of last 4 periods, OR lagging ~10%' and demand was 130, also above average, so CORRECT. Error count = 0, CONFIDENT. (2) Analyst: Pipeline ADEQUATE (IP/B=0.78), trend up with 3 evidence periods and high R²=0.803, OR 
+
+--- Period 17 ---
+  Demand: 107, OR rec: 121, LLM ordered: 130
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period 15). That predicted UP. Period 16 demand was 139, above the recent average of ~123.5, so insight was CORRECT. Period 15's insight was 'Demand up 3 of last 4 periods, OR lagging' (from period 14). Period 15 demand was 123, above the recent average of ~119, so that was also CORRECT. Thus last 2 insights both correct → error count = 0 → CONFIDENT. (2) Analyst: Pipeline ADEQUATE (
+
+--- Period 18 ---
+  Demand: 78, OR rec: 68, LLM ordered: 73
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand up 4 of last 5 periods, OR lagging ~15%' (from period 16). This predicted UP. Period 17 demand was 107, which is below the recent average of ~124.8, so the insight was WRONG. The period before that (period 16) had insight 'Demand up 3 of last 4 periods, OR lagging ~10%' (from period 15). Period 16 demand was 139, above recent average, so that insight was CORRECT. Thus, 1 of last 2 directional insights was wrong → CAUTIOUS. (2) An
+
+--- Period 19 ---
+  Demand: 66, OR rec: 67, LLM ordered: 64
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand down 2 of last 3 periods, OR lagging ~7%' (from period 17). That predicted DOWN. Period 18 demand was 78, which is below the recent average (111.8) — insight was CORRECT. The period before that (period 17), the insight was 'Demand up 3 of last 4 periods, OR lagging ~16%' (from period 16). That predicted UP. Period 17 demand was 107, which is below the recent average (111.8) — insight was WRONG. So last 2 directional insights: 1 c
+
+--- Period 20 ---
+  Demand: 49, OR rec: 62, LLM ordered: 50
+  Full Rationale:
+  (1) Self-calibration: Last period's carry-over insight was 'Demand down 2 of last 3 periods, OR lagging ~-5%' (directional down). Demand this period (66) is below the recent average (97.5) → insight CORRECT. The period before that (P18), the insight was 'Demand down 2 of last 3 periods, OR lagging ~-5%' (directional down). Demand in P18 was 78, below the recent average at that time (approx 110) → insight CORRECT. So last 2 insights both correct → error count = 0 → CONFIDENT. (2) Analyst: Pipelin
+
+======================================================================
+DETAILED TRACE: candidate_h2u_003 (mean NR = 0.7129)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5278)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4325.9
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        Step 0: |gap_pct|=7.5% (<15%) → LOW reversion risk. CV=0.301 (>0.3) → escalate to MODERATE. Regime shift exception: evid
+2    114      162      162      0        0.0        Step 0: |gap_pct| = 3.0% (LOW reversion risk). CV = 0.302 > 0.3, escalate one tier to MODERATE. Regime shift exception: 
+3    86       158      158      0        0.0        Step 0: |gap_pct| = 7.7% (< 15%) → LOW reversion risk. CV = 0.167 (< 0.3) → no escalation. Regime shift exception: evide
+4    118      102      102      0        0.0        Step 0: |gap_pct| = 8.6% (< 15%) → LOW reversion risk. CV = 0.191 (< 0.3) → no escalation. Regime shift exception: evide
+5    121      3        3        121      438.0      Step 0: |gap_pct| = 0.4% (< 15%), so reversion risk tier is LOW. CV = 0.137 (< 0.3), no escalation. Regime shift excepti
+6    75       125      125      75       167.0      Step 0: |gap_pct| = 0.0% (LOW reversion risk). CV=0.147 < 0.3, no escalation. Regime shift exception: no (evidence_perio
+7    74       61       61       74       79.0       Step 0: |gap_pct| = 6.1% (<15%), so reversion risk is LOW. CV=0.230 (<0.3), no escalation. Regime shift exception: no (e
+8    119      67       61       119      276.0      Step 0: |gap_pct| = 6.6% (<15%) → LOW reversion risk. CV=0.268 (<0.3) so no escalation. Regime shift exception: evidence
+9    102      117      117      102      307.0      Step 0: |gap_pct| = 7.4% (<15%) → LOW reversion risk. CV=0.270 (<0.3) → no escalation. Regime shift exception: evidence_
+10   140      90       100      140      474.0      Step 0: |gap_pct| = 11.7% (< 15%), so reversion risk is LOW. CV = 0.237 (< 0.3), no escalation. Regime shift exception: 
+11   78       149.52219773857607 149      78       243.0      Step 0: |gap_pct| = 1.5% (LOW reversion risk). CV=0.257 < 0.3, no escalation. Regime shift exception: evidence_periods=3
+12   158      90       82       136      544.0      Step 0: |gap_pct| = 4.2% (LOW reversion risk). CV=0.239 < 0.3, no escalation. Regime shift exception: evidence_periods=3
+13   150      152      148      117      468.0      Step 0: |gap_pct|=10.2% (<15%) → LOW reversion risk. CV=0.303 (>0.3) escalates to MODERATE. Regime shift exception: evid
+14   124      139      126      90       360.0      Step 0: |gap_pct| = 18.8% (MODERATE reversion risk). CV = 0.277 (< 0.3, no escalation). Regime shift exception: evidence
+15   99       100      80       99       345.5      Step 0: |gap_pct|=14.4% (<15%) → LOW reversion risk. CV=0.283 (<0.3) → no escalation. Regime shift exception: evidence_p
+16   58       67       74       58       149.5      Step 0: |gap_pct| = 19.8% (MODERATE reversion risk). CV = 0.202 (low, no escalation). Regime shift exception: evidence_p
+17   103      48       56       103      280.5      Step 0: |gap_pct| = 0.5% (<15%), so reversion risk is LOW. CV=0.363 (>0.3), escalate one tier to MODERATE. Regime shift 
+18   46       90       108      46       -40.5      Step 0: |gap_pct| = 11.1% (< 15%) → LOW reversion risk. CV = 0.288 (< 0.3) → no escalation. Regime shift exception: evid
+19   101      63       55       101      180.5      Step 0: |gap_pct| = 27.4% (MODERATE reversion risk). CV = 0.376 > 0.3, escalate to HIGH reversion risk. Regime shift exc
+20   69       98       91       69       54.5       Step 0: |gap_pct| = 26.8% (MODERATE reversion risk). CV = 0.380 > 0.3, escalate to HIGH reversion risk. Regime shift exc
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 16 ---
+  Demand: 58, OR rec: 74, LLM ordered: 67
+  Full Rationale:
+  Step 0: |gap_pct| = 19.8% (MODERATE reversion risk). CV = 0.202 (low, no escalation). Regime shift exception: evidence_periods=4 (<6), R²=0.958 (>0.8) but not all conditions met (carry-over insight from last period predicted down and was confirmed? Last period I noted 'down trend confirmed, but gap is moderate, so scale override by 0.5x' — the direction was down and confirmed, but evidence_periods=4 <6, so no exception). Memory: last period I noted down trend with moderate gap, scaled override b
+
+--- Period 17 ---
+  Demand: 103, OR rec: 56, LLM ordered: 48
+  Full Rationale:
+  Step 0: |gap_pct| = 0.5% (<15%), so reversion risk is LOW. CV=0.363 (>0.3), escalate one tier to MODERATE. Regime shift exception: evidence_periods=4 (<6), R²=0.985 (>0.8) but not all conditions met, so no. Memory: last period noted down-trend with high R², confirmed by continued drop. Analyst: trend down, 4p evidence, R²=0.985, OR trust low due to i.i.d. violation. OR=56. Given strong down-trend, demand likely continues below mean, so I want to order less than OR to avoid overstock. Unscaled ov
+
+--- Period 18 ---
+  Demand: 46, OR rec: 108, LLM ordered: 90
+  Full Rationale:
+  Step 0: |gap_pct| = 11.1% (< 15%) → LOW reversion risk. CV = 0.288 (< 0.3) → no escalation. Regime shift exception: evidence_periods = 3 (< 6), R² = 0.237 (< 0.8), no carry-over insight from last period predicted same direction → no exception. Memory: last period I noted 'downward trend may be temporary, but OR is overestimating; ordered 48, which was below OR 56, and demand was 103, sold 103, reward +280. The trend seems to be reverting?'. Analyst: trend down, 3p evidence, R² low (0.237), volat
+
+--- Period 19 ---
+  Demand: 101, OR rec: 55, LLM ordered: 63
+  Full Rationale:
+  Step 0: |gap_pct| = 27.4% (MODERATE reversion risk). CV = 0.376 > 0.3, escalate to HIGH reversion risk. Regime shift exception: evidence_periods=3 (<6), R²=0.262 (<0.8), no carry-over insight from last period predicted same direction, so no exception. Memory: last period noted 'down trend likely to revert' but no strong signal. Analyst: down trend with low trust, OR overestimates demand. OR=55. My unscaled opinion: demand is dropping, but reversion risk is high, so I want to order below OR. With
+
+--- Period 20 ---
+  Demand: 69, OR rec: 91, LLM ordered: 98
+  Full Rationale:
+  Step 0: |gap_pct| = 26.8% (MODERATE reversion risk). CV = 0.380 > 0.3, escalate to HIGH reversion risk. Regime shift exception: evidence_periods=3 (<6), R²=0.101 (<0.8), no carry-over insight from last period predicted same direction (last period had down trend, now up), so no exception. Memory: last period noted volatile demand and low trust in OR. Analyst: trend up but weak (R²=0.101), volatile, OR trust low with bias -24. OR=91. My unscaled opinion: given uptrend and low trust in OR, I want t
+
+### Instance: p06_variance_L4 (NR = 0.5315)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4371.3
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141      141      0        0.0        Step 0: |gap_pct| = 6.1% (< 15%) → LOW reversion risk. CV = 0.288 (< 0.3) → no escalation. Regime shift exception: evide
+2    155      142.7822216182063 142      0        0.0        Step 0: |gap_pct| = 9.9% (<15%) → LOW reversion risk. CV=0.279 (<0.3) so no escalation. Regime shift exception: evidence
+3    128      159      159      0        0.0        Step 0: |gap_pct| = 5.6% (<15%) → LOW reversion risk. CV=0.262 (<0.3) → no escalation. Regime shift exception: evidence_
+4    117      159      159      0        0.0        Step 0: |gap_pct|=13.5% (<15%) → LOW reversion risk. CV=0.168 (<0.3) so no escalation. Regime shift exception: evidence_
+5    98       5        10       98       349.0      Step 0: |gap_pct| = 15.5% (MODERATE reversion risk). CV = 0.137 (<0.3, no escalation). Regime shift exception: evidence_
+6    98       104      93       98       304.2      Step 0: |gap_pct|=12.5% (<15%) → LOW reversion risk. CV=0.191 (<0.3) so no escalation. Regime shift exception: evidence_
+7    47       60       80       47       -11.8      Step 0: |gap_pct| = 0.6% (LOW reversion risk). CV = 0.135 (<0.3), no escalation. Regime shift exception: no (evidence_pe
+8    83       75       50       83       56.2       Step 0: |gap_pct| = 13.7% (<15%) → LOW reversion risk. CV=0.334 (>0.3) → escalate one tier to MODERATE. Regime shift exc
+9    123      63       48       123      334.2      Step 0: |gap_pct| = 20.6% (MODERATE reversion risk). CV = 0.295 < 0.3, no escalation. Regime shift exception: evidence_p
+10   92       120      114      92       198.2      Step 0: |gap_pct| = 15.7% (MODERATE reversion risk). CV = 0.362 > 0.3, escalate to HIGH reversion risk. Regime shift exc
+11   119      86       81       119      365.2      Step 0: |gap_pct| = 16.5% (MODERATE reversion risk). CV = 0.363 > 0.3, escalate to HIGH reversion risk. Regime shift exc
+12   84       117      117      84       234.2      Step 0: |gap_pct| = 0.1% (LOW reversion risk). CV=0.189 < 0.3, no escalation. Regime shift exception: no (evidence_perio
+13   102      70       78       102      345.2      Step 0: |gap_pct| = 1.3% (LOW reversion risk). CV=0.186 < 0.3, no escalation. Regime shift exception: evidence_periods=3
+14   130      108      108      130      467.2      Step 0: |gap_pct| = 3.7% (<15%) → LOW reversion risk. CV=0.152 (<0.3) so no escalation. Regime shift exception: evidence
+15   123      137      137      123      476.2      Step 0: |gap_pct| = 4.1% (<15%), so reversion risk is LOW. CV = 0.185 (<0.3), no escalation. Regime shift exception: evi
+16   139      147      127      132.78222161820634 531.1      Step 0: |gap_pct| = 4.1% (<15%) → LOW reversion risk. CV=0.190 (<0.3) → no escalation. Regime shift exception: evidence_
+17   107      134      121      70.0     280.0      Step 0: |gap_pct| = 15.4% (MODERATE reversion risk). CV = 0.128 (low, no escalation). Regime shift exception: evidence_p
+18   78       62       56       78       282.0      Step 0: |gap_pct| = 16.6% (MODERATE reversion risk). CV = 0.108 (low, no escalation). Regime shift exception: evidence_p
+19   66       60       66       66       163.0      Step 0: |gap_pct| = 5.7% (<15%) → LOW reversion risk. CV=0.233 (<0.3) so no escalation. Regime shift exception: evidence
+20   49       58       65       49       -3.0       Step 0: |gap_pct| = 6.3% (<15%) → LOW reversion risk. CV=0.334 (>0.3) → escalate one tier to MODERATE. Regime shift exce
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 16 ---
+  Demand: 139, OR rec: 127, LLM ordered: 147
+  Full Rationale:
+  Step 0: |gap_pct| = 4.1% (<15%) → LOW reversion risk. CV=0.190 (<0.3) → no escalation. Regime shift exception: evidence_periods=3 (<6), R²=0.803 (>0.8 but insufficient evidence periods), carry-over insight from last period predicted same direction? Last period's carry-over insight was empty, so no confirmation. Exception not met. Memory: last period I noted 'Demand continues strong, uptrend building. OR may be lagging.' This period, demand remains high (123) and trend is up with 3 periods eviden
+
+--- Period 17 ---
+  Demand: 107, OR rec: 121, LLM ordered: 134
+  Full Rationale:
+  Step 0: |gap_pct| = 15.4% (MODERATE reversion risk). CV = 0.128 (low, no escalation). Regime shift exception: evidence_periods=3 (<6), R²=0.726 (<0.8), no carry-over insight confirming direction from last period (last period's insight was empty). So no exception. Memory: last period I noted 'Demand continues upward trend; OR underestimates. Override to 147.' That was confirmed (demand 139, sold 132.78). Analyst: trend up, gap +15.4%, OR trust low, bias +18. OR=121. My unscaled opinion: demand is
+
+--- Period 18 ---
+  Demand: 78, OR rec: 56, LLM ordered: 62
+  Full Rationale:
+  Step 0: |gap_pct| = 16.6% (MODERATE reversion risk). CV = 0.108 (low, no escalation). Regime shift exception: evidence_periods=3 (<6), R²=0.256 (<0.8), no carry-over insight from last period predicted same direction (last period's insight was about uptrend, but now trend is down, so not confirmed). Exception does not apply. Memory: last period noted uptrend but now trend reversed to down; analyst flags down-trend with 3 periods evidence and OR underestimates demand by +16.1%. OR=56. Pipeline ADE
+
+--- Period 19 ---
+  Demand: 66, OR rec: 66, LLM ordered: 60
+  Full Rationale:
+  Step 0: |gap_pct| = 5.7% (<15%) → LOW reversion risk. CV=0.233 (<0.3) so no escalation. Regime shift exception: evidence_periods=3 (<6), R²=0.687 (<0.8), no carry-over insight from last period predicted same direction (last period had down trend, but no confirmation of regime shift) → no exception. Memory: last period noted down trend with 3p evidence, but demand dropped sharply to 78, which may be noise. Analyst: trend down, OR trust low with bias +3, pipeline ADEQUATE. OR=66. Given low reversi
+
+--- Period 20 ---
+  Demand: 49, OR rec: 65, LLM ordered: 58
+  Full Rationale:
+  Step 0: |gap_pct| = 6.3% (<15%) → LOW reversion risk. CV=0.334 (>0.3) → escalate one tier to MODERATE. Regime shift exception: evidence_periods=4 (<6), R²=0.966 (>0.8) but not all conditions met (carry-over insight from last period predicted down and was confirmed, but evidence_periods <6), so exception does not apply. Memory: last period noted sustained down trend, confirmed by analyst. Analyst: trend down, 4p evidence, R²=0.966, OR trust low with bias -4. OR=65. Pipeline ADEQUATE (IP=504, B=57
+
+======================================================================
+DETAILED TRACE: candidate_h2u_001 (mean NR = 0.7447)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5471)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4484.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        Step 0: alternation score = 0 (only 5 periods, no flips between up and down). Regime: SMOOTH. Memory: none (first period
+2    114      146      162      0        0.0        Step 0: alternation score = 0 (only 1 period visible, no flips). Regime: SMOOTH. Memory buffer: no prior insight. Analys
+3    86       158      158      0        0.0        Step 0: alternation score = 0 (no up↔down flips in visible history). Regime: SMOOTH. Memory buffer: no prior insight. An
+4    118      118      118      0        0.0        Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir is down, down, flat — no reversals). Regim
+5    121      3        3        121      438.0      Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir is down, down, flat, flat — no flips). Reg
+6    75       125      125      75       183.0      Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir is down, down, flat, flat, flat — no rever
+7    74       61       61       74       95.0       Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir sequence is down, flat, flat, flat, flat).
+8    119      57       61       119      276.0      Step 0: alternation score = 0 (no up↔down flips in visible history: all periods show 'flat' trend_dir). Regime: SMOOTH. 
+9    102      118      127      102      307.0      Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir has been flat, flat, flat, flat, down — no
+10   140      109      109      140      474.0      Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir is flat, flat, flat, down, down). Regime: 
+11   78       149      149      78       243.0      Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir sequence is flat, flat, down, down, flat).
+12   158      73       73       126      504.0      Step 0: alternation score = 2 (period 8 down→period 9 down→period 10 flat→period 11 up→period 12? Actually count flips: 
+13   150      146      146      118      472.0      Step 0: alternation score = 3 (up→down at P8→P9, down→up at P10→P11, up→down at P11→P12). Regime: CYCLIC. In CYCLIC regi
+14   124      131      131      109      436.0      Step 0: alternation score = 4 (up→down→up→down→up across periods 9-13). Regime: CYCLIC. In CYCLIC regime, OR is the safe
+15   99       111      111      99       346.0      Step 0: Alternation score = 4 (up→down→up→down→volatile, but volatile is not counted; flips: P10 flat→P11 up, P11 up→P12
+16   58       95       95       58       167.0      Step 0: Alternation score = 2 (up→down in P11-P12, down→up in P12-P13). Regime: CYCLIC. In CYCLIC regime, trends are pha
+17   103      48       48       103      304.0      Step 0: Alternation score = 2 (up→down at P12→P13, down→up at P13→P14). Regime: CYCLIC. In CYCLIC regime, the strong dow
+18   46       80       101      46       -9.0       Step 0: alternation score = 2 (up→down at P13→P14, down→volatile not counted, volatile→down not counted, but up→down at 
+19   101      40       57       101      201.0      Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir is volatile, down, down, down — no reversa
+20   69       128      116      69       47.0       Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir has been 'down' for periods 16-19, then 'u
+
+### Key Deviation Periods for p07_seasonal_L4:
+
+--- Period 8 ---
+  Demand: 119, OR rec: 61, LLM ordered: 57
+  Full Rationale:
+  Step 0: alternation score = 0 (no up↔down flips in visible history: all periods show 'flat' trend_dir). Regime: SMOOTH. Memory: no prior insight. Analyst: pipeline ADEQUATE, trend down (R²=0.78, 3p evidence), OR trust low due to trend violation. OR q=61. In SMOOTH regime, trend is genuine. Downward trend suggests OR may be too high (d_bar lags recent demand). OR trust low with bias -4 (-6.6%). Pipeline ADEQUATE allows some reduction. Recent 5p avg=97 vs d_bar=103.8, gap -6.6%. Adjust OR down by 
+
+--- Period 9 ---
+  Demand: 102, OR rec: 127, LLM ordered: 118
+  Full Rationale:
+  Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir has been flat, flat, flat, flat, down — no up↔down transitions). Regime: SMOOTH. Memory: no prior carry-over insight. Analyst: pipeline ADEQUATE (IP=446, B=574, ratio=0.78), trend down with very low R²=0.001 and only 3 evidence periods, volatile (CV=0.270). OR trust low due to i.i.d. violation (down-trend detected), suggested bias -9 (-7.1%). OR formula gives q_or=127. In SMOOTH regime, weak trend (low R², few periods)
+
+--- Period 18 ---
+  Demand: 46, OR rec: 101, LLM ordered: 80
+  Full Rationale:
+  Step 0: alternation score = 2 (up→down at P13→P14, down→volatile not counted, volatile→down not counted, but up→down at P13→P14 and down→down no flip, so only 1 flip? Actually count: P13 up, P14 volatile (ignore), P15 volatile (ignore), P16 down (volatile→down not counted), P17 down (down→down no flip). So only 1 flip? Wait, check: P13 up, P14 volatile (ignore), P15 volatile (ignore), P16 down (volatile→down not counted), P17 down. So alternation score = 1. But also consider earlier periods? The
+
+--- Period 19 ---
+  Demand: 101, OR rec: 57, LLM ordered: 40
+  Full Rationale:
+  Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir is volatile, down, down, down — no reversals). Regime: SMOOTH. Memory: no prior insight. Analyst: pipeline ADEQUATE, trend down with 3p evidence but low R²=0.262, OR trust low due to i.i.d. violation and overestimation bias -26.3%. OR recommends 57. Recent demand avg 69 is well below historical mean 105, suggesting a sustained shift. In SMOOTH regime, trend is genuine but weak; OR overestimates. Given low trust and cle
+
+--- Period 20 ---
+  Demand: 69, OR rec: 116, LLM ordered: 128
+  Full Rationale:
+  Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir has been 'down' for periods 16-19, then 'up' in period 20). Regime: SMOOTH. Memory: no prior carry-over insight. Analyst: pipeline ADEQUATE (ratio 0.80), trend up (R²=0.101, weak), OR trust low due to trend and bias. OR formula: q_or=116. In SMOOTH regime, weak trend (low R², 3 evidence periods) suggests staying close to OR. Pipeline is ADEQUATE, so no need to exceed OR by more than 10%. Bias suggestion of -31 is from 
+
+### Instance: p06_variance_L4 (NR = 0.5595)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2056
+    Total Reward: $4601.1
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    118      141      141      0        0.0        Step 0: alternation score = 0 (only 5 periods, no flips between up and down). Regime: SMOOTH. Memory buffer: empty (firs
+2    155      142.7822216182063 142      0        0.0        Step 0: alternation score = 0 (only one period visible, no flips). Regime: SMOOTH. Memory buffer: no prior insight. Anal
+3    128      159      159      0        0.0        Step 0: alternation score = 0 (only two periods, no flips) → SMOOTH regime. Memory: no prior insight. Analyst: strong up
+4    117      159      159      0        0.0        Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir is volatile, up, up — no reversals). Regim
+5    98       11       10       98       349.0      Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir is volatile, up, up, up — no reversals). R
+6    98       70       87       98       304.2      Step 0: alternation score = 2 (up→down flips: period 2 up to period 5 down, and period 5 down to period 6? Actually coun
+7    47       70       108      47       -11.8      Step 0: Alternation score = 2 (up→down at period 4→5, down→up at period 5→6? Actually period 5 trend_dir=down, period 6 
+8    83       54       68       83       56.2       Step 0: Alternation score = 2 (up→down at period 4→5, down→up at period 5→6? Actually period 5 trend_dir=down, period 6 
+9    123      70       87       123      328.2      Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir has been down for periods 5-8, and period 
+10   92       131      146      92       226.2      Step 0: alternation score = 0 (no up↔down flips in visible history: trend_dir has been down, down, down, down, volatile 
+11   119      82       102      119      383.2      Step 0: alternation score = 2 (period 6 down, period 7 down, period 8 down, period 9 volatile, period 10 up: down→up fli
+12   84       142      142      84       273.2      Step 0: alternation score = 2 (period 9 volatile, period 10 up, period 11 up, but period 8 down and period 7 down; flips
+13   102      78       78       102      377.2      Step 0: alternation score = 2 (period 8 down→period 9 volatile not counted, period 9 volatile→period 10 up not counted, 
+14   130      100      100      130      488.2      Step 0: alternation score = 2 (up→down at P10-P11? Actually P9 volatile, P10 up, P11 up, P12 flat, P13 down: flips: P10 
+15   123      137      137      113.78222161820634 455.1      Step 0: alternation score = 2 (up→down at P12→P13, down→flat at P13→P14). Regime: CYCLIC. In CYCLIC regime, OR is the sa
+16   139      118      118      139      553.0      Step 0: alternation score = 2 (flips: up→down at P11→P12, down→up at P12→P13). Regime: CYCLIC. In CYCLIC regime, apparen
+17   107      149.73771619845652 147      81.0     324.0      Step 0: alternation score = 1 (only one flip: down→up at period 16). Regime is SMOOTH. Memory from last period: none. An
+18   78       85       77       78       290.0      Step 0: alternation score = 2 (flips: down→flat at P13-P14, flat→up at P15-P16, up→up at P16-P17, but only up↔down flips
+19   66       58       64       66       171.0      Step 0: alternation score = 2 (up→down at period 17→18, and down→up at period 16→17? Actually count: period 16 trend=up,
+20   49       59       66       49       34.0       Step 0: Alternation score = 2 (up→down at P16-P17? Actually P15 flat, P16 up, P17 up, P18 down, P19 down: flips: P16 up 
+
+### Key Deviation Periods for p06_variance_L4:
+
+--- Period 11 ---
+  Demand: 119, OR rec: 102, LLM ordered: 82
+  Full Rationale:
+  Step 0: alternation score = 2 (period 6 down, period 7 down, period 8 down, period 9 volatile, period 10 up: down→up flip at period 10, plus earlier down→up? Actually count: period 6 down, period 7 down, period 8 down, period 9 volatile, period 10 up. Only one flip (down→up) from period 8 to period 10? But period 9 is volatile, so ignore. So score=1? Wait, check all periods: period 6 down, period 7 down, period 8 down, period 9 volatile, period 10 up. Only one transition from down to up (period 
+
+--- Period 17 ---
+  Demand: 107, OR rec: 147, LLM ordered: 149.73771619845652
+  Full Rationale:
+  Step 0: alternation score = 1 (only one flip: down→up at period 16). Regime is SMOOTH. Memory from last period: none. Analyst shows strong uptrend (R²=0.726, 3p evidence, gap +15.4%), OR trust low due to trend bias. Pipeline ADEQUATE (ratio 0.75). In SMOOTH regime, trend is likely genuine. OR underestimates demand by ~15%, so adjust upward. However, pipeline is ADEQUATE, so avoid over-ordering. Cap deviation at 20% of OR (147*0.2=29). Set q = 147 + 22 (bias) = 169, but cap at 147+29=176, and cap
+
+--- Period 18 ---
+  Demand: 78, OR rec: 77, LLM ordered: 85
+  Full Rationale:
+  Step 0: alternation score = 2 (flips: down→flat at P13-P14, flat→up at P15-P16, up→up at P16-P17, but only up↔down flips count: P13 down to P14 flat not counted, P14 flat to P15 flat not counted, P15 flat to P16 up not counted, P16 up to P17 up not counted; actually check: P13 down, P14 flat, P15 flat, P16 up, P17 up. No up↔down flips, so score=0? Wait, earlier periods: P12? Not shown. From visible: P13 down, P14 flat, P15 flat, P16 up, P17 up. No up↔down flips. Score=0 → SMOOTH regime. Memory: 
+
+--- Period 19 ---
+  Demand: 66, OR rec: 64, LLM ordered: 58
+  Full Rationale:
+  Step 0: alternation score = 2 (up→down at period 17→18, and down→up at period 16→17? Actually count: period 16 trend=up, period 17 trend=up (no flip), period 18 trend=down (flip from up to down = 1 flip). Also period 15 trend=flat, period 16 trend=up (flat to up not counted). So only 1 flip? Wait, check all periods: period 14 flat, 15 flat, 16 up, 17 up, 18 down. Only one up→down flip (16→17? No, 16 up, 17 up, so flip at 17→18). So alternation score = 1, SMOOTH regime. However, note that the tre
+
+--- Period 20 ---
+  Demand: 49, OR rec: 66, LLM ordered: 59
+  Full Rationale:
+  Step 0: Alternation score = 2 (up→down at P16-P17? Actually P15 flat, P16 up, P17 up, P18 down, P19 down: flips: P16 up to P18 down = 1 flip? Wait: P16 up, P17 up (no flip), P18 down (flip from up to down = 1), P19 down (no flip). So score=1? But also P14? Let's count all visible: P15 flat, P16 up (no flip from flat), P17 up (no flip), P18 down (flip up→down =1), P19 down (no flip). So score=1, SMOOTH regime. However, note that trend_dir shows up then down, but only one flip. So SMOOTH. Memory f

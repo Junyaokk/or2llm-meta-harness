@@ -1,0 +1,1 @@
+# H2X — Structured Memory + Reviewer Agent Architecture

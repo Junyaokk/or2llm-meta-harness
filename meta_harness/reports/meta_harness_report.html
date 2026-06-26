@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meta-Harness Report — H1 System Prompt Optimization</title>
+<style>
+  :root {
+    --bg: #0d1117; --surface: #161b22; --border: #30363d;
+    --text: #c9d1d9; --muted: #8b949e; --accent: #58a6ff;
+    --green: #3fb950; --red: #f85149; --yellow: #d2991d;
+    --purple: #a371f7; --orange: #f0883e;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { max-width: 1400px; margin: 0 auto; padding: 24px; }
+  h1 { font-size: 1.8em; color: var(--accent); margin-bottom: 4px; }
+  h2 { font-size: 1.3em; color: var(--accent); margin: 32px 0 16px;
+        border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { font-size: 1.1em; color: var(--text); margin: 20px 0 10px; }
+  h4 { font-size: 0.95em; color: var(--muted); margin: 16px 0 8px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 20px; margin-bottom: 16px;
+  }
+
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; }
+
+  .kpi-box { text-align: center; padding: 16px; }
+  .kpi-value { font-size: 2.2em; font-weight: 700; }
+  .kpi-label { font-size: 0.8em; color: var(--muted); margin-top: 4px; }
+  .kpi-sub  { font-size: 0.75em; margin-top: 2px; }
+
+  .text-green { color: var(--green); }
+  .text-red { color: var(--red); }
+  .text-yellow { color: var(--yellow); }
+  .text-purple { color: var(--purple); }
+  .text-muted { color: var(--muted); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 0.85em; }
+  th { background: var(--border); color: var(--text); padding: 8px 10px;
+        text-align: left; font-weight: 600; white-space: nowrap; }
+  td { padding: 6px 10px; border-bottom: 1px solid var(--border);
+        vertical-align: top; }
+  tr:hover { background: rgba(88,166,255,0.05); }
+
+  .badge {
+    display: inline-block; padding: 2px 8px; border-radius: 12px;
+    font-size: 0.75em; font-weight: 600;
+  }
+  .badge-best { background: rgba(63,185,80,0.2); color: var(--green); }
+  .badge-baseline { background: rgba(139,148,158,0.2); color: var(--muted); }
+  .badge-improved { background: rgba(88,166,255,0.2); color: var(--accent); }
+  .badge-worse { background: rgba(248,81,73,0.2); color: var(--red); }
+
+  .bar-container { height: 8px; background: var(--border); border-radius: 4px;
+                    overflow: hidden; margin: 4px 0; }
+  .bar-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+
+  .rationale-box {
+    background: #0d1117; border: 1px solid var(--border); border-radius: 4px;
+    padding: 12px; font-size: 0.82em; max-height: 300px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word; margin: 8px 0;
+    font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.4;
+  }
+
+  .sparkline { display: flex; align-items: flex-end; gap: 4px; height: 60px; }
+  .sparkline-bar {
+    flex: 1; background: var(--accent); border-radius: 2px 2px 0 0;
+    min-height: 2px; transition: height 0.3s; position: relative;
+  }
+  .sparkline-bar.baseline { background: var(--muted); }
+  .sparkline-bar.best { background: var(--green); }
+
+  .diff-arrow { font-size: 1.2em; }
+
+  .collapsible { cursor: pointer; user-select: none; }
+  .collapsible::before { content: '▸ '; display: inline-block; transition: 0.2s; }
+  .collapsible.open::before { content: '▾ '; }
+  .collapsible-content { display: none; }
+  .collapsible-content.open { display: block; }
+
+  .proposer-ctx {
+    background: #0d1117; border: 1px solid var(--border); border-radius: 4px;
+    padding: 16px; font-size: 0.78em; max-height: 500px; overflow-y: auto;
+    white-space: pre-wrap; word-break: break-word;
+    font-family: 'SF Mono', 'Fira Code', monospace; line-height: 1.3;
+  }
+
+  .timeline { position: relative; padding-left: 24px; }
+  .timeline::before {
+    content: ''; position: absolute; left: 8px; top: 0; bottom: 0;
+    width: 2px; background: var(--border);
+  }
+  .timeline-item { position: relative; margin-bottom: 16px; }
+  .timeline-item::before {
+    content: ''; position: absolute; left: -20px; top: 6px;
+    width: 10px; height: 10px; border-radius: 50%; background: var(--accent);
+  }
+
+  .tag {
+    display: inline-block; padding: 1px 6px; border-radius: 4px;
+    font-size: 0.7em; font-weight: 600; margin-right: 4px;
+  }
+  .tag-L0 { background: rgba(88,166,255,0.15); color: var(--accent); }
+  .tag-L4 { background: rgba(163,113,247,0.15); color: var(--purple); }
+  .tag-rho { background: rgba(210,153,29,0.15); color: var(--yellow); }
+
+  @media (max-width: 900px) {
+    .grid-2, .grid-3, .grid-5 { grid-template-columns: 1fr; }
+    body { padding: 12px; }
+  }
+</style>
+</head>
+<body>
+<h1>⚙️ Meta-Harness Report</h1>
+<div class="text-muted" style="margin-bottom:24px;">
+  H1 System Prompt Optimization
+  · Duration: 276m24s
+  · 6 candidates · 5 instances · 20 periods/instance
+</div>
+<h2>📊 Executive Summary</h2>
+<div class="card">
+  <div class="grid-3">
+    <div class="kpi-box">
+      <div class="kpi-value text-green">0.7425</div>
+      <div class="kpi-label">Best Candidate NR</div>
+      <div class="kpi-sub text-muted">candidate_004</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-value text-green">+0.0792</div>
+      <div class="kpi-label">Delta vs Baseline</div>
+      <div class="kpi-sub text-green">+11.9%</div>
+    </div>
+    <div class="kpi-box">
+      <div class="kpi-value text-purple">5/5</div>
+      <div class="kpi-label">Candidates Improving on Baseline</div>
+      <div class="kpi-sub text-muted">Excluding baseline itself</div>
+    </div>
+  </div>
+</div>
+<h2>📈 Score Progression</h2>
+<div class="card">
+  <div class="sparkline" style="margin-bottom:16px;">
+    <div class="sparkline-bar baseline" style="height:10%" title="candidate_000: 0.6633"></div>
+<div class="sparkline-bar" style="height:92%" title="candidate_001: 0.7285"></div>
+<div class="sparkline-bar" style="height:109%" title="candidate_002: 0.7418"></div>
+<div class="sparkline-bar" style="height:86%" title="candidate_003: 0.7238"></div>
+<div class="sparkline-bar best" style="height:110%" title="candidate_004: 0.7425"></div>
+<div class="sparkline-bar" style="height:97%" title="candidate_005: 0.7325"></div>
+  </div>
+  <table>
+    <thead><tr>
+      <th>Candidate</th><th>Mean NR</th><th>Δ Baseline</th><th>Per Instance</th>
+    </tr></thead>
+    <tbody><tr>
+              <td><span class="badge badge-baseline">BASELINE</span> candidate_000</td>
+              <td><strong>0.6633</strong></td>
+              <td class="text-green">+0.0000</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8845<br>p04_increasing_trend_L0: 0.8832<br>p07_seasonal_L4: 0.3964<br>p08_changepoint_L0: 0.8558<br>p06_variance_L4: 0.2966</td>
+            </tr><tr>
+              <td> candidate_001</td>
+              <td><strong>0.7285</strong></td>
+              <td class="text-green">+0.0653</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8741<br>p04_increasing_trend_L0: 0.8382<br>p07_seasonal_L4: 0.5361<br>p08_changepoint_L0: 0.8634<br>p06_variance_L4: 0.5309</td>
+            </tr><tr>
+              <td> candidate_002</td>
+              <td><strong>0.7418</strong></td>
+              <td class="text-green">+0.0786</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8955<br>p04_increasing_trend_L0: 0.8680<br>p07_seasonal_L4: 0.5245<br>p08_changepoint_L0: 0.8761<br>p06_variance_L4: 0.5451</td>
+            </tr><tr>
+              <td> candidate_003</td>
+              <td><strong>0.7238</strong></td>
+              <td class="text-green">+0.0605</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8236<br>p04_increasing_trend_L0: 0.8723<br>p07_seasonal_L4: 0.5681<br>p08_changepoint_L0: 0.8257<br>p06_variance_L4: 0.5292</td>
+            </tr><tr>
+              <td><span class="badge badge-best">BEST</span> candidate_004</td>
+              <td><strong>0.7425</strong></td>
+              <td class="text-green">+0.0792</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8862<br>p04_increasing_trend_L0: 0.8682<br>p07_seasonal_L4: 0.5406<br>p08_changepoint_L0: 0.8701<br>p06_variance_L4: 0.5472</td>
+            </tr><tr>
+              <td> candidate_005</td>
+              <td><strong>0.7325</strong></td>
+              <td class="text-green">+0.0692</td>
+              <td class="text-muted" style="font-size:0.8em;">p01_stationary_L0: 0.8963<br>p04_increasing_trend_L0: 0.8044<br>p07_seasonal_L4: 0.5416<br>p08_changepoint_L0: 0.8701<br>p06_variance_L4: 0.5502</td>
+            </tr></tbody>
+  </table>
+</div>
+<h2>Evolution Timeline</h2>
+<div class="card">
+  <div class="timeline">
+    <div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_000</strong> <span class="badge badge-baseline">BASELINE</span>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.6633</span>
+    
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_000: <span style="color:#f85149;">0.0000 (0.0%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;"></div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_001</strong>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7285</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#3fb950;">+0.0653</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_000: <span style="color:#3fb950;">+0.0653 (+9.8%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;">Changes from baseline (candidate_000):</div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_002</strong>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7418</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#3fb950;">+0.0133</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_000: <span style="color:#3fb950;">+0.0786 (+11.8%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;">Changes from candidate_001:</div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_003</strong>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7238</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#f85149;">-0.0181</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_000: <span style="color:#3fb950;">+0.0605 (+9.1%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;">Changes from candidate_002:</div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_004</strong> <span class="badge badge-best">BEST</span>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7425</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#3fb950;">+0.0187</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_000: <span style="color:#3fb950;">+0.0792 (+11.9%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;">Changes from candidate_002 (best so far):</div>
+</div><div class="timeline-item">
+  <div style="display:flex; align-items:baseline; gap:8px;">
+    <strong>candidate_005</strong>
+    <span style="font-size:1.1em; font-weight:700;">NR=0.7325</span>
+    <span style="font-size:0.8em; margin-left:8px;">vs prev: </span><span style="color:#f85149;">-0.0099</span>
+    <span class="text-muted" style="font-size:0.78em;">vs candidate_000: <span style="color:#3fb950;">+0.0692 (+10.4%)</span></span>
+  </div>
+  <div class="text-muted" style="font-size:0.82em; margin-top:4px;">Changes from candidate_004 (best so far):</div>
+</div>
+  </div>
+</div>
+<h2>Candidate Details</h2>
+<script>
+function toggleCollapsible(el) {
+  el.classList.toggle('open');
+  el.parentElement.nextElementSibling.classList.toggle('open');
+}
+function toggleDiff(id) {
+  var el = document.getElementById(id);
+  if (el.style.display === 'none' || el.style.display === '') { el.style.display = 'block'; }
+  else { el.style.display = 'none'; }
+}
+</script>
+<div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_000</span>
+    <span class="badge badge-baseline">
+      NR=0.6633 <span class="text-green">(+0.0000 vs candidate_000)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    
+    <table style="margin-bottom:12px;">
+  <thead><tr><th>Instance</th><th>NR</th><th>LLM Override Behavior</th></tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8845</strong></td>
+              <td class="text-muted">18 deviations from OR</td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8832</strong></td>
+              <td class="text-muted">18 deviations from OR</td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.3964</strong></td>
+              <td class="text-muted">15 deviations from OR</td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8558</strong></td>
+              <td class="text-muted">12 deviations from OR</td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.2966</strong></td>
+              <td class="text-muted">14 deviations from OR</td>
+            </tr></tbody>
+</table>
+    
+    <h4>System Prompt <span class="text-muted" style="font-size:0.75em;">(2998 chars)</span></h4>
+    
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_001</span>
+    <span class="badge badge-improved">
+      NR=0.7285 <span class="text-green">(+0.0653 vs candidate_000)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_000 → candidate_001 · NR +0.0653 <span class="text-green">↑</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr><th>Instance</th><th>NR</th><th>LLM Override Behavior</th></tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8741</strong></td>
+              <td class="text-muted">10 deviations from OR</td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8382</strong></td>
+              <td class="text-muted">13 deviations from OR</td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5361</strong></td>
+              <td class="text-muted">3 deviations from OR</td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8634</strong></td>
+              <td class="text-muted">2 deviations from OR</td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5309</strong></td>
+              <td class="text-muted">10 deviations from OR</td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 001 — Improved prompt based on baseline trace analysis.
+
+Changes from baseline (candidate_000):
+  S5: Replaced dense lead-time text with concrete numeric example
+  S4: Added &quot;When to TRUST the OR&quot; section (the baseline only says when to override)
+  S3: Added evidence threshold — 3+ consecutive periods before declaring regime shift
+  S2: Added intuition for cap and base-stock (why they exist, not just formulas)
+  S4: Added pipeline inventory double-counting check
+
+Hypothesis: LLM over-orders in L=4 cases because it misunderstands pipeline timing
+and overrides OR on weak signals. Concrete examples + trust guidance + evidence
+threshold should reduce unnecessary overrides and improve p07/p06 performance.</div>
+    <h4>System Prompt <span class="text-muted" style="font-size:0.75em;">(5882 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_001')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+27</span> <span style="color:var(--red);">-6</span> lines (33 total changes)
+  </span>
+  <div id="diff_candidate_001" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_000)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_001</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -8,7 +8,11 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Lead time definition.** Promised lead time: {anticipated_lead_time} period(s). An order placed in Period N arrives during Period (N+L)'s arrival resolution, becomes visible in the &quot;Period (N+L) conclude&quot; message, and is read at the start of Period (N+L+1)'s decision phase. There is always a 1-period observation delay. Actual lead time may differ from promised; orders may also be lost (never arrive).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Lead time definition — READ THIS CAREFULLY.** Promised lead time: {anticipated_lead_time} period(s).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Concrete example with L=4: You place an order in Period 1. It arrives during Period 5's arrival resolution. You see &quot;arrived=...&quot; in the Period 5 conclude message. You can read that message at the start of Period 6's decision phase. This means: (a) you will NOT see the arrival for 5 full periods after ordering, (b) during Periods 2-5, your on-hand inventory receives NO help from this order, (c) the &quot;waited periods&quot; counter in the in-transit table tells you how long ago you placed each order — an order with waited=4 is arriving THIS period, an order with waited&lt;4 is still in transit (NOT overdue).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Actual lead time may differ from promised; orders may also be lost (never arrive). In fixed lead-time mode (L=0 or L=4), the actual lead time equals the promised lead time — orders are never lost. DO NOT declare orders &quot;overdue&quot; unless waited periods substantially exceeds the promised lead time AND you have confirmed the order did not arrive.</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -21,22 +25,39 @@</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   This is the target inventory POSITION (on-hand + ALL in-transit). B already accounts for lead-time demand. If IP &gt;= B, the system already has enough stock in the pipeline — ordering more creates excess holding costs.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   The cap exists to prevent inventory instability — even if B - IP_t is large, ordering more than cap in a single period creates boom-bust cycles. Respect the cap unless you have EXTREMELY strong evidence (5+ periods of sustained shift).</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Your role:** The OR recommendation is a data-driven baseline. Override it when you detect: actual vs. promised lead time discrepancies, demand regime changes, seasonality (from dates + product description), or lost shipments.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Your role — TWO PARTS:**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>PART A: When to TRUST the OR baseline (DEFAULT behavior):</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- When demand is stationary (no clear trend, mean and variance stable over last 5+ periods).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- When IP_t is already close to or above B (the pipeline is adequately filled).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- When the OR's demand estimate (d_bar) is within ~10% of recent demand average.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- When you have L=4 and orders are in transit — trust the pipeline math. The OR correctly accounts for in-transit inventory in IP_t. Over-ordering because you &quot;feel&quot; inventory is low while IP_t is high is the #1 mistake.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>PART B: When to OVERRIDE the OR (requires evidence):</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- Demand regime change: at least 3 consecutive periods consistently above/below the OR's d_bar by 20%+ AND the shift persists (not a 1-2 period spike).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- Seasonality: you detect a cyclical pattern from dates or product type that the OR's flat average ignores.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- Lost shipments: confirmed by waited periods exceeding promised lead time by 2+ without arrival.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>CRITICAL: Overriding OR downward (ordering less than OR) is safe — you save holding costs. Overriding OR upward (ordering MORE than OR) is risky — you create excess inventory that incurs holding costs period after period. When overriding upward, demand evidence must be STRONG (3+ consecutive periods of elevated demand).</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. Reconcile on-hand + pipeline with expected arrivals; flag overdue/lost shipments.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. Inspect the OR recommendation (quantity + stats) and decide how to adapt it.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. Justify final quantity by tying it to demand outlook, lead-time belief, and OR's baseline.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>2. PIPELINE CHECK: Compute IP = on-hand + total in-transit. Is IP already close to B? If yes, the system is adequately stocked — ordering more requires strong justification.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>3. Reconcile on-hand + pipeline with expected arrivals. Check waited_periods for each in-transit order. An order with waited={anticipated_lead_time} is arriving THIS period. An order placed last period has waited=1 and will arrive in {anticipated_lead_time}-1 more periods — it is NOT overdue.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>4. Inspect the OR recommendation (quantity + stats). If OR says 0, check: is IP &gt; B? If yes, OR is correct — the pipeline is full.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>5. If overriding OR: state specifically which OR limitation applies (regime shift? seasonality? lost order?) and cite the evidence (how many consecutive periods support your claim?).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>6. Justify final quantity by tying it to demand outlook, lead-time belief, and OR's baseline.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Carry-over insights:** Record only NEW, evidence-backed insights about sustained shifts (demand mean/variance, lead time, seasonality). Stay conservative; provide concrete stats. Remove insights once they stop being true.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Carry-over insights:** Record only NEW, evidence-backed insights about sustained shifts (demand mean/variance, lead time, seasonality). Require at least 3 consecutive periods of consistent evidence before recording an insight. Stay conservative; provide concrete stats. Remove insights once they stop being true.</div>
+  </div>
+</div>
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_002</span>
+    <span class="badge badge-improved">
+      NR=0.7418 <span class="text-green">(+0.0786 vs candidate_000)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_001 → candidate_002 · NR +0.0133 <span class="text-green">↑</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr><th>Instance</th><th>NR</th><th>LLM Override Behavior</th></tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8955</strong></td>
+              <td class="text-muted">2 deviations from OR</td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8680</strong></td>
+              <td class="text-muted">15 deviations from OR</td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5245</strong></td>
+              <td class="text-muted">2 deviations from OR</td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8761</strong></td>
+              <td class="text-muted">4 deviations from OR</td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5451</strong></td>
+              <td class="text-muted">2 deviations from OR</td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 002 — Refined thresholds + trend guidance.
+
+Changes from candidate_001:
+  S3: Evidence threshold raised: require 5-period avg differing &gt;20% from OR mean
+      (not just 3 consecutive). Reduces false positives in stationary data.
+  S4: Added monotonic trend guidance — OR's flat average systematically lags
+      in sustained uptrends/downtrends. LLM should bias upward/downward accordingly.
+  S4: Explicit stationary case: &quot;If variance is the only change, trust OR quantity.&quot;
+
+Hypothesis: candidate_001 improved L=4 cases but regressed on stationary/trend.
+Raising evidence threshold + adding trend-specific guidance should recover
+trend performance while keeping L=4 gains.</div>
+    <h4>System Prompt <span class="text-muted" style="font-size:0.75em;">(6001 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_002')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+34</span> <span style="color:var(--red);">-7</span> lines (41 total changes)
+  </span>
+  <div id="diff_candidate_002" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_000)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_002</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -8,7 +8,11 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Lead time definition.** Promised lead time: {anticipated_lead_time} period(s). An order placed in Period N arrives during Period (N+L)'s arrival resolution, becomes visible in the &quot;Period (N+L) conclude&quot; message, and is read at the start of Period (N+L+1)'s decision phase. There is always a 1-period observation delay. Actual lead time may differ from promised; orders may also be lost (never arrive).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Lead time definition — READ THIS CAREFULLY.** Promised lead time: {anticipated_lead_time} period(s).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Concrete example with L=4: You place an order in Period 1. It arrives during Period 5's arrival resolution. You see &quot;arrived=...&quot; in the Period 5 conclude message. You can read that message at Period 6's decision phase. This means: (a) you will NOT see the arrival for 5 full periods after ordering, (b) during Periods 2-5, your on-hand inventory receives NO help from this order, (c) the &quot;waited periods&quot; counter tells you how long ago each order was placed — waited=4 means arriving THIS period, waited&lt;4 means still in transit (NOT overdue).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>In fixed lead-time mode (L=0 or L=4), actual lead time equals promised lead time — orders are never lost. DO NOT declare orders &quot;overdue&quot; unless waited periods substantially exceeds the promised lead time AND arrival was not observed.</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -21,22 +25,45 @@</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   B is the target inventory POSITION (on-hand + ALL in-transit). If IP &gt;= B, the pipeline is full — ordering more creates excess holding costs.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   The cap prevents inventory boom-bust cycles. Respect it unless the demand shift is massive and sustained.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Your role:** The OR recommendation is a data-driven baseline. Override it when you detect: actual vs. promised lead time discrepancies, demand regime changes, seasonality (from dates + product description), or lost shipments.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Your role — THREE PARTS:**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>PART A: When to TRUST the OR (DEFAULT — most periods should fall here):</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- Demand appears stationary: no clear directional trend, 5-period moving average within ~15% of OR's d_bar.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- IP_t is close to or above B (the pipeline is adequately filled).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- The main change is VARIANCE (wider swings) rather than MEAN (sustained higher/lower level). OR handles variance well; it struggles with mean shifts.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- L=4 with orders in transit: trust the pipeline math. OR correctly accounts for in-transit in IP_t. Over-ordering because on-hand &quot;looks low&quot; while pipeline is full is the #1 mistake.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>PART B: When to OVERRIDE the OR (requires evidence):</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- MEAN SHIFT: the 5-period moving average differs from OR's d_bar by &gt;20% consistently. Not just 1-2 high periods — a SUSTAINED elevation or depression.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- MONOTONIC TREND: demand shows a clear directional pattern (each period higher than the last, or each period lower) over 4+ periods. The OR's flat historical average systematically LAGS behind trends. In a sustained uptrend, bias your order ABOVE OR's recommendation. In a downtrend, bias BELOW.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- SEASONALITY: cyclical pattern from product type (e.g., swimwear peaks in summer, chips sell more on weekends/holidays).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- LOST SHIPMENTS: only in stochastic lead-time mode. Not applicable for fixed L=0 or L=4.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>PART C: When overriding, calibrate the MAGNITUDE:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- Small adjustment (±20% from OR): minor demand shifts, seasonal intuition, slight trend.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- Medium adjustment (±20-50% from OR): clear trend over 4+ periods, confirmed mean shift.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- Large adjustment (&gt;+50% from OR): massive, sustained demand surge (5+ periods well above OR mean). Rare — use sparingly.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>OVERRIDE UPWARD (order &gt; OR) is risky — excess inventory incurs holding costs every period. OVERRIDE DOWNWARD (order &lt; OR) is safer — you save holding costs and can always order more next period. When uncertain, bias downward.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>1. Use world knowledge and SKU description to assess demand outlook.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. Reconcile on-hand + pipeline with expected arrivals; flag overdue/lost shipments.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. Inspect the OR recommendation (quantity + stats) and decide how to adapt it.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. Justify final quantity by tying it to demand outlook, lead-time belief, and OR's baseline.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>1. Demand outlook: compute the 5-period moving average. Compare to OR's d_bar. Is there a &gt;20% gap? Is there a monotonic trend?</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>2. PIPELINE CHECK: IP = on-hand + all in-transit. If IP &gt;= B, the system is adequately stocked — overriding upward requires very strong evidence.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>3. Lead time check: for each in-transit order, waited={anticipated_lead_time} means arriving THIS period. waited&lt;{anticipated_lead_time} means still in transit — NOT overdue.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>4. OR recommendation: if OR says 0, check IP vs B. If IP &gt; B, OR is correct — pipeline is full.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>5. If overriding: state which OR limitation applies, cite the evidence (5-period avg vs d_bar, trend direction, number of confirming periods).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>6. Final quantity: tie to demand outlook, lead-time belief, and OR baseline. State your adjustment magnitude and why.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Carry-over insights:** Record only NEW, evidence-backed insights about sustained shifts (demand mean/variance, lead time, seasonality). Stay conservative; provide concrete stats. Remove insights once they stop being true.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Carry-over insights:** Record only evidence-backed discoveries about sustained shifts. A single high or low period is NOT a shift — wait for confirmation (consistent pattern over 4+ periods). Stay conservative; provide concrete stats (e.g., &quot;5-period avg = 180 vs OR mean = 110, +64%&quot;). Remove insights once they stop being true.</div>
+  </div>
+</div>
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_003</span>
+    <span class="badge badge-improved">
+      NR=0.7238 <span class="text-green">(+0.0605 vs candidate_000)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_002 → candidate_003 · NR -0.0181 <span class="text-red">↓</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr><th>Instance</th><th>NR</th><th>LLM Override Behavior</th></tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8236</strong></td>
+              <td class="text-muted">14 deviations from OR</td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8723</strong></td>
+              <td class="text-muted">19 deviations from OR</td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5681</strong></td>
+              <td class="text-muted">11 deviations from OR</td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8257</strong></td>
+              <td class="text-muted">14 deviations from OR</td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5292</strong></td>
+              <td class="text-muted">9 deviations from OR</td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 003 — Trend slope projection + adaptive magnitude.
+
+Changes from candidate_002:
+  S3: Added &quot;trend slope&quot; computation: LLM should estimate per-period demand growth
+      rate and project forward. OR's flat mean lags by slope × (n_periods/2).
+  S3: Magnitude calibration made adaptive — larger adjustments for steeper slopes.
+  S4: Removed the hard 20% threshold for monotonic trends (too conservative).
+  S4: Kept 5-period avg threshold for non-trend cases (stationary, changepoint).
+
+Hypothesis: candidate_002 fixed stationary and L=4 but was too conservative for
+linear trends. Adding slope projection should recover p04 to above-baseline.</div>
+    <h4>System Prompt <span class="text-muted" style="font-size:0.75em;">(5574 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_003')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+37</span> <span style="color:var(--red);">-8</span> lines (45 total changes)
+  </span>
+  <div id="diff_candidate_003" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_000)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_003</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -8,7 +8,11 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Lead time definition.** Promised lead time: {anticipated_lead_time} period(s). An order placed in Period N arrives during Period (N+L)'s arrival resolution, becomes visible in the &quot;Period (N+L) conclude&quot; message, and is read at the start of Period (N+L+1)'s decision phase. There is always a 1-period observation delay. Actual lead time may differ from promised; orders may also be lost (never arrive).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Lead time definition — READ THIS CAREFULLY.** Promised lead time: {anticipated_lead_time} period(s).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Concrete example with L=4: You place an order in Period 1. It arrives during Period 5's arrival resolution. You see &quot;arrived=...&quot; in the Period 5 conclude message. You can read that message at Period 6's decision phase. This means: (a) you will NOT see the arrival for 5 full periods after ordering, (b) during Periods 2-5, your on-hand inventory receives NO help from this order, (c) the &quot;waited periods&quot; counter tells you how long ago each order was placed — waited=4 means arriving THIS period, waited&lt;4 means still in transit (NOT overdue).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>In fixed lead-time mode (L=0 or L=4), actual lead time equals promised lead time — orders are never lost. DO NOT declare orders &quot;overdue&quot; unless waited periods substantially exceeds the promised lead time AND arrival was not observed.</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -21,22 +25,47 @@</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   B is the target inventory POSITION (on-hand + ALL in-transit). If IP &gt;= B, the pipeline is full.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>5. **OR limitations:** Uses promised (not actual) lead time; weights all historical samples equally; cannot detect lost orders or regime shifts; assumes i.i.d. demand.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>5. **OR limitations:** Uses promised (not actual) lead time; weights all historical samples equally; cannot detect lost orders or regime shifts; assumes i.i.d. demand. KEY INSIGHT: the OR's equal-weighted mean systematically LAGS behind trends. If demand is growing by ~X units per period, the OR's mean understates current demand by approximately X × (n/2) where n is the number of historical periods.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Your role:** The OR recommendation is a data-driven baseline. Override it when you detect: actual vs. promised lead time discrepancies, demand regime changes, seasonality (from dates + product description), or lost shipments.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Your role — THREE PARTS:**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>PART A: TREND DETECTION (check this FIRST):</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- Compute the per-period growth rate: take the last 4 periods, compute (last - first) / 3. This is the approximate slope.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- If slope is consistently positive over 4+ periods: you have an UPTREND. The OR will systematically under-order. Your order should be OR_recommendation + slope × (total_periods/2) to compensate for the OR's lag, bounded by the cap.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- If slope is consistently negative over 4+ periods: you have a DOWNTREND. The OR will systematically over-order. Reduce order below OR recommendation.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- If slope is near zero or oscillating (positive some periods, negative others): NO trend. Use the stationary guidance below.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>PART B: When to TRUST the OR (for NON-TREND cases):</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- 5-period moving average within ~15% of OR's d_bar, no directional trend.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- IP_t is close to or above B (the pipeline is adequately filled).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- The main change is VARIANCE (wider swings) rather than MEAN (sustained higher/lower level). OR handles variance well.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- L=4 with orders in transit: trust the pipeline math. OR correctly accounts for in-transit in IP_t.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>PART C: STATIONARY OVERRIDE (only if no trend detected):</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- MEAN SHIFT: 5-period moving average differs from OR's d_bar by &gt;20% consistently over 4+ periods.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- SEASONALITY: cyclical pattern from product type.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- LOST SHIPMENTS: only in stochastic lead-time mode.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>1. Use world knowledge and SKU description to assess demand outlook.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. Reconcile on-hand + pipeline with expected arrivals; flag overdue/lost shipments.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. Inspect the OR recommendation (quantity + stats) and decide how to adapt it.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. Justify final quantity by tying it to demand outlook, lead-time belief, and OR's baseline.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>1. TREND CHECK: compute last-4 slope. Is it consistently positive or negative? If yes, go to step 5 with trend adjustment.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>2. Demand outlook: 5-period moving average vs OR's d_bar. Gap &gt; 20%?</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>3. PIPELINE CHECK: IP = on-hand + all in-transit. If IP &gt;= B, overriding upward requires strong evidence.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>4. Lead time check: waited={anticipated_lead_time} = arriving NOW. waited&lt;{anticipated_lead_time} = in transit.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>5. Final quantity:</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - IF TREND: order = OR_rec + slope_projection, respecting cap. State your slope estimate.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - IF STATIONARY + SHIFT: adjust OR_rec by the gap between 5-period avg and d_bar, up to cap.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - IF STATIONARY + NO SHIFT: follow OR recommendation closely. Small (±10%) adjustments only for product knowledge.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>   - IF PIPELINE FULL (IP &gt; B): order = 0 or small quantity. Trust the pipeline.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Carry-over insights:** Record only NEW, evidence-backed insights about sustained shifts (demand mean/variance, lead time, seasonality). Stay conservative; provide concrete stats. Remove insights once they stop being true.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>OVERRIDE UPWARD is risky (holding costs). OVERRIDE DOWNWARD is safer. When uncertain, bias downward.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span></div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Carry-over insights:** Record evidence-backed discoveries. For trends: note the slope estimate. For shifts: note the gap between recent avg and OR mean. Wait for 4+ periods of confirmation before recording. Remove when no longer true.</div>
+  </div>
+</div>
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_004</span>
+    <span class="badge badge-best">
+      NR=0.7425 <span class="text-green">(+0.0792 vs candidate_000)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_003 → candidate_004 · NR +0.0187 <span class="text-green">↑</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr><th>Instance</th><th>NR</th><th>LLM Override Behavior</th></tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8862</strong></td>
+              <td class="text-muted">5 deviations from OR</td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8682</strong></td>
+              <td class="text-muted">16 deviations from OR</td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5406</strong></td>
+              <td class="text-muted">4 deviations from OR</td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8701</strong></td>
+              <td class="text-muted">3 deviations from OR</td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5472</strong></td>
+              <td class="text-muted">5 deviations from OR</td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 004 — Decision tree format + common mistakes upfront.
+
+Changes from candidate_002 (best so far):
+  - Reorganized as decision tree: TREND? → SHIFT? → PIPELINE? → ORDER
+  - Added &quot;Common Mistakes&quot; section at top (attention anchor)
+  - Compressed lead time explanation
+  - Kept all 002 mechanics: pipeline trust, variance/mean distinction, evidence threshold
+
+Hypothesis: A more procedural, decision-tree format reduces LLM confusion
+and produces more consistent behavior across all patterns.</div>
+    <h4>System Prompt <span class="text-muted" style="font-size:0.75em;">(3832 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_004')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+42</span> <span style="color:var(--red);">-30</span> lines (72 total changes)
+  </span>
+  <div id="diff_candidate_004" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_000)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_004</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -1,49 +1,61 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>You control the vending machine for a single SKU &quot;{item_id}&quot; while collaborating with an OR baseline. Maximize total reward R_t = Profit x units_sold - HoldingCost x ending_inventory each period.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>You manage inventory for SKU &quot;{item_id}&quot;. Each period you decide order quantity q_t. Goal: maximize Profit × units_sold - HoldingCost × ending_inventory.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Period execution sequence:**</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>1. **VM Decision Phase:** You receive observation (including OR recommendation) and place orders for Period N</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. **Arrival Resolution:** Orders scheduled to arrive in Period N are added to on-hand inventory</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. **Demand Resolution:** Customer demand is satisfied from on-hand inventory</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. **Period Conclusion:** System generates &quot;Period N conclude&quot; message (visible in Period N+1)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**COMMON MISTAKES TO AVOID:**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- MISTAKE 1: Ordering more when IP (on-hand + in-transit) already exceeds base-stock B. The pipeline is FULL — ordering more just creates holding costs.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- MISTAKE 2: Declaring orders &quot;overdue&quot; in fixed lead-time mode. With L={anticipated_lead_time}, orders arrive exactly on schedule. waited={anticipated_lead_time} means arriving NOW.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- MISTAKE 3: Overriding OR after 1-2 high periods. That's noise, not a regime shift. Wait for sustained evidence.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- MISTAKE 4: Treating variance changes as mean shifts. Wider swings don't mean higher average demand.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Important: Steps 2-4 happen AFTER your decision. You will see their results in the next period.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Lead time: L={anticipated_lead_time}.** Order in period N arrives in period N+L. You see the arrival in period N+L's conclude message, readable at N+L+1. L=0 means instant arrival. L=4 means 4-period delay. In fixed lead-time mode, orders NEVER get lost.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Lead time definition.** Promised lead time: {anticipated_lead_time} period(s). An order placed in Period N arrives during Period (N+L)'s arrival resolution, becomes visible in the &quot;Period (N+L) conclude&quot; message, and is read at the start of Period (N+L+1)'s decision phase. There is always a 1-period observation delay. Actual lead time may differ from promised; orders may also be lost (never arrive).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**OR BASELINE (capped base-stock policy):**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- d_bar = mean(history), s_d = std(history)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- mu_hat = (1+L) × d_bar, sigma_hat = √(1+L) × s_d</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- ρ = p/(p+h) = {critical_fractile:.4f}, z* = Φ⁻¹(ρ) = {z_star:.4f}</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- B = mu_hat + z* × sigma_hat  [target inventory POSITION]</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- IP = on_hand + all in_transit</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- q_or = max(0, min(B - IP, cap))  where cap prevents boom-bust cycles</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- OR LIMITATIONS: uses promised L, equal-weights all history, assumes i.i.d., cannot detect shifts/seasonality/loss.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**The OR agent uses a capped base-stock policy:**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Current: p={p}, h={h}</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>1. **Demand estimation** (from historical samples x_1, ..., x_n):</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   Empirical mean: m = (1/n) sum_i x_i</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   Std dev: s = sqrt(1/(n-1) sum_i (x_i - m)^2)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   Over lead time horizon: mu_hat = (1+L) * m, sigma_hat = sqrt(1+L) * s</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**YOUR DECISION TREE — follow in order:**</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. **Safety factor:** q = p/(p+h), z* = Phi^{{-1}}(q)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   Current: p={p}, h={h}, q={critical_fractile:.4f}, z*={z_star:.4f}</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>STEP 1: Compute 5-period avg demand and compare to OR's d_bar.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Gap &lt; 15% AND no consistent direction? → TRUST OR. Go to STEP 4 with small adjustments only.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Gap &gt; 20% consistently OR clear direction? → POTENTIAL SHIFT. Go to STEP 2.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. **Base stock:** B = mu_hat + z* * sigma_hat</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>STEP 2: Check trend direction.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Monotonic increase over 4+ periods? → UPTREND. OR lags behind. Bias order ABOVE OR recommendation. Go to STEP 3.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Monotonic decrease over 4+ periods? → DOWNTREND. OR overshoots. Bias BELOW. Go to STEP 3.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - No clear direction (oscillating)? → MEAN SHIFT or VARIANCE CHANGE. Go to STEP 3.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. **Capped order:** q_t = max(0, min(B - IP_t, cap))</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   where cap = mu_hat/(1+L) + Phi^{{-1}}(0.95) * sigma_hat/sqrt(1+L)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   and IP_t = on-hand + all in-transit orders</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>STEP 3: Check if it's VARIANCE or MEAN changing.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Are demand values swinging WIDER but the center is similar? → VARIANCE CHANGE. OR handles this fine. TRUST OR quantity, small adjustments only.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Is the center consistently HIGHER or LOWER? → MEAN SHIFT. Adjust OR recommendation by the gap between 5-period avg and d_bar. Cap your adjustment at ±50% of OR recommendation.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Is there a cyclical pattern (product type + calendar)? → SEASONALITY. Adjust up/down based on where you are in the cycle.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>5. **OR limitations:** Uses promised (not actual) lead time; weights all historical samples equally; cannot detect lost orders or regime shifts; assumes i.i.d. demand.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>STEP 4: PIPELINE CHECK.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Compute IP = on_hand + total in_transit.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - If IP &gt;= B: pipeline is full. Order 0 or small quantity unless you have EXTREMELY strong evidence of sustained demand surge.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - If IP &lt; B: there is room to order. Order = min(B - IP, cap, your adjusted quantity).</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Your role:** The OR recommendation is a data-driven baseline. Override it when you detect: actual vs. promised lead time discrepancies, demand regime changes, seasonality (from dates + product description), or lost shipments.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>STEP 5: FINAL QUANTITY.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Trust case: q = OR recommendation ±10% for product knowledge.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Trend case: q = OR recommendation + direction × adjustment, respecting cap.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Shift case: q = min(OR recommendation + gap_adjustment, cap).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  - Full pipeline case: q = 0 or small safety quantity.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Decision checklist:**</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>1. Use world knowledge and SKU description to assess demand outlook.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. Reconcile on-hand + pipeline with expected arrivals; flag overdue/lost shipments.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. Inspect the OR recommendation (quantity + stats) and decide how to adapt it.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. Justify final quantity by tying it to demand outlook, lead-time belief, and OR's baseline.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>OVERRIDE UP = risky (holding costs compound). OVERRIDE DOWN = safer. When uncertain, bias downward.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Carry-over insights:** Record only NEW, evidence-backed insights about sustained shifts (demand mean/variance, lead time, seasonality). Stay conservative; provide concrete stats. Remove insights once they stop being true.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Carry-over insights:** Record discoveries with evidence. State the gap (e.g., &quot;5-period avg=180 vs OR mean=110, +64%&quot;). Wait for 4+ periods of confirmation. Delete when no longer true.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>  &quot;rationale&quot;: &quot;full step-by-step analysis&quot;,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  &quot;rationale&quot;: &quot;Walk through STEPS 1-5. State your 5-period avg, the gap vs d_bar, trend direction, IP vs B, and final decision.&quot;,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>  &quot;carry_over_insight&quot;: &quot;new sustained discoveries, or empty string&quot;,</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>  &quot;carry_over_insight&quot;: &quot;new sustained discovery or empty&quot;,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Respond ONLY with the JSON object, no other text.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>Respond ONLY with JSON.</div>
+  </div>
+</div>
+  </div>
+</div><div class="card">
+  <h3>
+    <span class="collapsible" onclick="toggleCollapsible(this)">candidate_005</span>
+    <span class="badge badge-improved">
+      NR=0.7325 <span class="text-green">(+0.0692 vs candidate_000)</span>
+    </span>
+  </h3>
+  <div class="collapsible-content">
+    <div style="margin-bottom:8px; padding:6px 10px; background:rgba(88,166,255,0.08); border-left:3px solid var(--accent); border-radius:4px; font-size:0.85em;">
+  <strong>Evolution:</strong> candidate_004 → candidate_005 · NR -0.0099 <span class="text-red">↓</span>
+</div>
+    <table style="margin-bottom:12px;">
+  <thead><tr><th>Instance</th><th>NR</th><th>LLM Override Behavior</th></tr></thead>
+  <tbody><tr>
+              <td>p01_stationary_L0</td>
+              <td><strong>0.8963</strong></td>
+              <td class="text-muted">1 deviations from OR</td>
+            </tr><tr>
+              <td>p04_increasing_trend_L0</td>
+              <td><strong>0.8044</strong></td>
+              <td class="text-muted">14 deviations from OR</td>
+            </tr><tr>
+              <td>p07_seasonal_L4</td>
+              <td><strong>0.5416</strong></td>
+              <td class="text-muted">1 deviations from OR</td>
+            </tr><tr>
+              <td>p08_changepoint_L0</td>
+              <td><strong>0.8701</strong></td>
+              <td class="text-muted">3 deviations from OR</td>
+            </tr><tr>
+              <td>p06_variance_L4</td>
+              <td><strong>0.5502</strong></td>
+              <td class="text-muted">3 deviations from OR</td>
+            </tr></tbody>
+</table>
+    <h4>Design Notes</h4>
+    <div class="rationale-box" style="color:var(--yellow);">Candidate 005 — Minimalist, high-density prompt.
+
+Changes from candidate_004 (best so far):
+  - Radical compression: ~60% shorter than baseline
+  - Removed all explanatory prose, kept only decision rules
+  - Added hard constraint: &quot;If IP &gt;= B → order = 0. No exceptions without 6+ periods of evidence.&quot;
+  - Simplified lead time to one line
+
+Hypothesis: LLMs sometimes follow rules better when the prompt is shorter
+and each line carries more weight. The pipeline-trust rule is strengthened
+to an almost-hard constraint to prevent over-ordering.</div>
+    <h4>System Prompt <span class="text-muted" style="font-size:0.75em;">(2089 chars)</span></h4>
+    <div style="margin-bottom:12px;">
+  <span class="collapsible" onclick="toggleDiff('diff_candidate_005')" style="font-size:0.85em;">
+    Diff vs Baseline: <span style="color:var(--green);">+26</span> <span style="color:var(--red);">-42</span> lines (68 total changes)
+  </span>
+  <div id="diff_candidate_005" style="display:none; margin-top:8px; font-family:'SF Mono','Fira Code',monospace; font-size:0.78em; max-height:600px; overflow-y:auto; background:#0d1117; border:1px solid var(--border); border-radius:4px; padding:8px; line-height:1.4;">
+    <div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>-- baseline (candidate_000)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>++ candidate_005</div><div style="color:var(--accent);font-weight:bold;margin-top:8px;">@@ -1,49 +1,33 @@</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>You control the vending machine for a single SKU &quot;{item_id}&quot; while collaborating with an OR baseline. Maximize total reward R_t = Profit x units_sold - HoldingCost x ending_inventory each period.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>You manage inventory for SKU &quot;{item_id}&quot;. Decide order quantity q_t each period. Goal: max(Profit × sold - HoldingCost × end_inv).</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Period execution sequence:**</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>1. **VM Decision Phase:** You receive observation (including OR recommendation) and place orders for Period N</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. **Arrival Resolution:** Orders scheduled to arrive in Period N are added to on-hand inventory</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. **Demand Resolution:** Customer demand is satisfied from on-hand inventory</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. **Period Conclusion:** System generates &quot;Period N conclude&quot; message (visible in Period N+1)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**KEY RULES (violate only with overwhelming evidence):**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>1. IP = on_hand + ALL in_transit. If IP &gt;= B → order 0. Period. Only override if 6+ consecutive periods of demand &gt; 2× OR's d_bar.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>2. Order placed in period N arrives in period N+{anticipated_lead_time}. Fixed lead time = {anticipated_lead_time}. Orders are NEVER lost.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>3. Override downward (order &lt; OR) = safe. Override upward (order &gt; OR) = risky. Bias down.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>4. One high period = noise. Need 4+ periods of consistent evidence to declare a shift.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Important: Steps 2-4 happen AFTER your decision. You will see their results in the next period.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**OR BASELINE:**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- d_bar = mean(demand_history), s_d = std(demand_history)</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- mu_hat = (1+L)×d_bar, sigma_hat = √(1+L)×s_d</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- B = mu_hat + z*×sigma_hat, where z* = Φ⁻¹(p/(p+h)) = {z_star:.4f}</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- IP = on_hand + total in_transit</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- q_or = max(0, min(B - IP, cap))</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>- Current: p={p}, h={h}, ρ={critical_fractile:.4f}</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Lead time definition.** Promised lead time: {anticipated_lead_time} period(s). An order placed in Period N arrives during Period (N+L)'s arrival resolution, becomes visible in the &quot;Period (N+L) conclude&quot; message, and is read at the start of Period (N+L+1)'s decision phase. There is always a 1-period observation delay. Actual lead time may differ from promised; orders may also be lost (never arrive).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**OR limitations:** assumes i.i.d., uses promised L, equal-weights history. Cannot detect shifts/trends/seasonality.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**The OR agent uses a capped base-stock policy:**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**DECISION LOGIC:**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>A. 5-period moving avg within 15% of d_bar AND no clear direction? → q = q_or ±10%. Trust OR.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>B. 5-period avg &gt; 20% above d_bar for 4+ periods? → MEAN SHIFT UP. q = min(q_or + 30%, cap).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>C. 5-period avg &gt; 20% below d_bar for 4+ periods? → MEAN SHIFT DOWN. q = max(q_or - 30%, 0).</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>D. Clear monotonic trend over 4+ periods? → Compute slope. q = q_or + slope_bias, within cap.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>E. Variance changing but mean stable? → q = q_or. OR handles variance fine.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>F. Cyclical/seasonal pattern from product? → Adjust ±20% based on cycle position.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>G. IP &gt;= B? → q = 0. (Rule 1 — only override with 6+ periods of &gt;2× demand.)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>1. **Demand estimation** (from historical samples x_1, ..., x_n):</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   Empirical mean: m = (1/n) sum_i x_i</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   Std dev: s = sqrt(1/(n-1) sum_i (x_i - m)^2)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   Over lead time horizon: mu_hat = (1+L) * m, sigma_hat = sqrt(1+L) * s</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**FINAL CHECK:** Will my order cause excess holding costs? If IP + q &gt; B + 20%, reduce q.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. **Safety factor:** q = p/(p+h), z* = Phi^{{-1}}(q)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   Current: p={p}, h={h}, q={critical_fractile:.4f}, z*={z_star:.4f}</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Carry-over:** Record shifts with evidence. Need 4+ periods. Delete when stale.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. **Base stock:** B = mu_hat + z* * sigma_hat</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span></div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. **Capped order:** q_t = max(0, min(B - IP_t, cap))</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   where cap = mu_hat/(1+L) + Phi^{{-1}}(0.95) * sigma_hat/sqrt(1+L)</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>   and IP_t = on-hand + all in-transit orders</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span></div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>5. **OR limitations:** Uses promised (not actual) lead time; weights all historical samples equally; cannot detect lost orders or regime shifts; assumes i.i.d. demand.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span></div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Your role:** The OR recommendation is a data-driven baseline. Override it when you detect: actual vs. promised lead time discrepancies, demand regime changes, seasonality (from dates + product description), or lost shipments.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span></div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Decision checklist:**</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>1. Use world knowledge and SKU description to assess demand outlook.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>2. Reconcile on-hand + pipeline with expected arrivals; flag overdue/lost shipments.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>3. Inspect the OR recommendation (quantity + stats) and decide how to adapt it.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>4. Justify final quantity by tying it to demand outlook, lead-time belief, and OR's baseline.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span></div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Carry-over insights:** Record only NEW, evidence-backed insights about sustained shifts (demand mean/variance, lead time, seasonality). Stay conservative; provide concrete stats. Remove insights once they stop being true.</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span></div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>**Output format** (JSON):</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>{{</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>  &quot;rationale&quot;: &quot;full step-by-step analysis&quot;,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>  &quot;short_rationale_for_human&quot;: &quot;1-3 sentence summary&quot;,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>  &quot;carry_over_insight&quot;: &quot;new sustained discoveries, or empty string&quot;,</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>  &quot;action&quot;: {{&quot;{item_id}&quot;: quantity}}</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>}}</div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span></div><div style="background:rgba(248,81,73,0.15);color:var(--red);padding:1px 4px;"><span style="color:var(--red);">-</span>Respond ONLY with the JSON object, no other text.</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>**Output (JSON only):**</div><div style="background:rgba(63,185,80,0.15);color:var(--green);padding:1px 4px;"><span style="color:var(--green);">+</span>{{&quot;rationale&quot;:&quot;Walk through A-G. State 5-period avg, d_bar, IP vs B, which rule applies.&quot;,&quot;short_rationale_for_human&quot;:&quot;1-2 sentences&quot;,&quot;carry_over_insight&quot;:&quot;or empty&quot;,&quot;action&quot;:{{&quot;{item_id}&quot;:qty}}}}</div>
+  </div>
+</div>
+  </div>
+</div>
+<h2>🧠 Proposer Context History</h2>
+<div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 0 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_004        0.7425     p01_stationary_L0=0.8862, p04_increasing_trend_L0=0.8682, p07_seasonal_L4=0.5406, p08_changepoint_L0=0.8701, p06_variance_L4=0.5472
+2     candidate_002        0.7418     p01_stationary_L0=0.8955, p04_increasing_trend_L0=0.8680, p07_seasonal_L4=0.5245, p08_changepoint_L0=0.8761, p06_variance_L4=0.5451
+3     candidate_005        0.7325     p01_stationary_L0=0.8963, p04_increasing_trend_L0=0.8044, p07_seasonal_L4=0.5416, p08_changepoint_L0=0.8701, p06_variance_L4=0.5502
+4     candidate_001        0.7285     p01_stationary_L0=0.8741, p04_increasing_trend_L0=0.8382, p07_seasonal_L4=0.5361, p08_changepoint_L0=0.8634, p06_variance_L4=0.5309
+5     candidate_003        0.7238     p01_stationary_L0=0.8236, p04_increasing_trend_L0=0.8723, p07_seasonal_L4=0.5681, p08_changepoint_L0=0.8257, p06_variance_L4=0.5292
+6     candidate_000        0.6633     p01_stationary_L0=0.8845, p04_increasing_trend_L0=0.8832, p07_seasonal_L4=0.3964, p08_changepoint_L0=0.8558, p06_variance_L4=0.2966
+
+======================================================================
+DETAILED TRACE: candidate_004 (mean NR = 0.7425)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5406)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4431.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        STEP 1: 5-period avg demand = (76+130+159+101+78)/5 = 108.8, exactly equal to OR's d_bar (108.8). Gap = 0% &lt; 15%, no con
+2    114      162      162      0        0.0        STEP 1: 5-period avg demand = (130+159+101+78+114)/5 = 116.4. d_bar = 109.7. Gap = (116.4-109.7)/109.7 = 6.1% &lt; 15%, no 
+3    86       158      158      0        0.0        STEP 1: 5-period avg demand = (159+101+78+114+114)/5 = 113.2. OR d_bar = 110.3. Gap = (113.2-110.3)/110.3 = 2.6% &lt; 15%, 
+4    118      102      102      0        0.0        STEP 1: 5-period avg demand = (101+78+114+114+86)/5 = 98.6. d_bar = 107.2. Gap = (98.6-107.2)/107.2 = -8.0% (&lt;15%). No c
+5    121      3        3        121      438.0      STEP 1: 5-period avg demand = (78+114+114+86+118)/5 = 102.0. OR d_bar = 108.4. Gap = (102-108.4)/108.4 = -5.9% (&lt;15%). N
+6    75       125      125      75       167.0      STEP 1: 5-period avg demand = (114+114+86+118+121)/5 = 110.6, vs d_bar=109.7, gap=0.8% (&lt;15%). No consistent direction (
+7    74       61       61       74       79.0       STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8. OR d_bar = 106.5. Gap = (102.8-106.5)/106.5 = -3.5%, well u
+8    119      61       61       119      276.0      STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8, vs d_bar=103.8, gap = -1.0% (&lt;15%). No consistent direction
+9    102      120      123      102      307.0      STEP 1: 5-period avg demand = (118+121+75+74+119)/5 = 101.4. OR d_bar = 105.0. Gap = (101.4-105)/105 = -3.4%, well under
+10   140      103      103      140      474.0      STEP 1: 5-period avg demand = (121+75+74+119+102)/5 = 98.2. OR d_bar = 104.8. Gap = (98.2-104.8)/104.8 = -6.3%, less tha
+11   78       149      149      78       243.0      STEP 1: 5-period avg demand = (75+74+119+102+140)/5 = 102.0. OR d_bar = 107.1. Gap = (102.0-107.1)/107.1 = -4.8% (&lt;15%).
+12   158      73       73       130      520.0      STEP 1: 5-period avg demand = (119+102+140+78+?)/5? Wait, last 5 demands: [119, 102, 140, 78, ?] but period 12 demand no
+13   150      150      150      120      480.0      STEP 1: 5-period avg demand = (119+102+140+78+158)/5 = 119.4. OR d_bar = 108.4. Gap = (119.4-108.4)/108.4 = 10.1% &lt; 15%,
+14   124      133      133      103      412.0      STEP 1: 5-period avg demand = (102+140+78+158+150)/5 = 125.6. OR d_bar = 110.7. Gap = (125.6-110.7)/110.7 = 13.4% &lt; 15%,
+15   99       116      105      99       346.0      STEP 1: 5-period avg demand = (140+78+158+150+124)/5 = 130.0. OR d_bar = 111.4. Gap = (130-111.4)/111.4 = 16.7%, which i
+16   58       84       84       58       167.0      STEP 1: 5-period avg demand = (78+158+150+124+99)/5 = 121.8. OR d_bar = 110.8. Gap = (121.8-110.8)/110.8 = 9.9% &lt; 15%, a
+17   103      48       48       103      300.0      STEP 1: 5-period avg demand = (158+150+124+99+58)/5 = 117.8. OR d_bar = 108.3. Gap = (117.8-108.3)/108.3 = 8.8% &lt; 15%, a
+18   46       101      101      46       -15.0      STEP 1: 5-period avg demand = (150+124+99+58+103)/5 = 106.8. OR d_bar = 108.0. Gap = (106.8-108)/108 = -1.1% (&lt;15%). No 
+19   1
+
+... [truncated]</div>
+  </div>
+</div><div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 1 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_004        0.7425     p01_stationary_L0=0.8862, p04_increasing_trend_L0=0.8682, p07_seasonal_L4=0.5406, p08_changepoint_L0=0.8701, p06_variance_L4=0.5472
+2     candidate_002        0.7418     p01_stationary_L0=0.8955, p04_increasing_trend_L0=0.8680, p07_seasonal_L4=0.5245, p08_changepoint_L0=0.8761, p06_variance_L4=0.5451
+3     candidate_005        0.7325     p01_stationary_L0=0.8963, p04_increasing_trend_L0=0.8044, p07_seasonal_L4=0.5416, p08_changepoint_L0=0.8701, p06_variance_L4=0.5502
+4     candidate_001        0.7285     p01_stationary_L0=0.8741, p04_increasing_trend_L0=0.8382, p07_seasonal_L4=0.5361, p08_changepoint_L0=0.8634, p06_variance_L4=0.5309
+5     candidate_003        0.7238     p01_stationary_L0=0.8236, p04_increasing_trend_L0=0.8723, p07_seasonal_L4=0.5681, p08_changepoint_L0=0.8257, p06_variance_L4=0.5292
+6     candidate_000        0.6633     p01_stationary_L0=0.8845, p04_increasing_trend_L0=0.8832, p07_seasonal_L4=0.3964, p08_changepoint_L0=0.8558, p06_variance_L4=0.2966
+
+======================================================================
+DETAILED TRACE: candidate_004 (mean NR = 0.7425)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5406)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4431.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        STEP 1: 5-period avg demand = (76+130+159+101+78)/5 = 108.8, exactly equal to OR's d_bar (108.8). Gap = 0% &lt; 15%, no con
+2    114      162      162      0        0.0        STEP 1: 5-period avg demand = (130+159+101+78+114)/5 = 116.4. d_bar = 109.7. Gap = (116.4-109.7)/109.7 = 6.1% &lt; 15%, no 
+3    86       158      158      0        0.0        STEP 1: 5-period avg demand = (159+101+78+114+114)/5 = 113.2. OR d_bar = 110.3. Gap = (113.2-110.3)/110.3 = 2.6% &lt; 15%, 
+4    118      102      102      0        0.0        STEP 1: 5-period avg demand = (101+78+114+114+86)/5 = 98.6. d_bar = 107.2. Gap = (98.6-107.2)/107.2 = -8.0% (&lt;15%). No c
+5    121      3        3        121      438.0      STEP 1: 5-period avg demand = (78+114+114+86+118)/5 = 102.0. OR d_bar = 108.4. Gap = (102-108.4)/108.4 = -5.9% (&lt;15%). N
+6    75       125      125      75       167.0      STEP 1: 5-period avg demand = (114+114+86+118+121)/5 = 110.6, vs d_bar=109.7, gap=0.8% (&lt;15%). No consistent direction (
+7    74       61       61       74       79.0       STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8. OR d_bar = 106.5. Gap = (102.8-106.5)/106.5 = -3.5%, well u
+8    119      61       61       119      276.0      STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8, vs d_bar=103.8, gap = -1.0% (&lt;15%). No consistent direction
+9    102      120      123      102      307.0      STEP 1: 5-period avg demand = (118+121+75+74+119)/5 = 101.4. OR d_bar = 105.0. Gap = (101.4-105)/105 = -3.4%, well under
+10   140      103      103      140      474.0      STEP 1: 5-period avg demand = (121+75+74+119+102)/5 = 98.2. OR d_bar = 104.8. Gap = (98.2-104.8)/104.8 = -6.3%, less tha
+11   78       149      149      78       243.0      STEP 1: 5-period avg demand = (75+74+119+102+140)/5 = 102.0. OR d_bar = 107.1. Gap = (102.0-107.1)/107.1 = -4.8% (&lt;15%).
+12   158      73       73       130      520.0      STEP 1: 5-period avg demand = (119+102+140+78+?)/5? Wait, last 5 demands: [119, 102, 140, 78, ?] but period 12 demand no
+13   150      150      150      120      480.0      STEP 1: 5-period avg demand = (119+102+140+78+158)/5 = 119.4. OR d_bar = 108.4. Gap = (119.4-108.4)/108.4 = 10.1% &lt; 15%,
+14   124      133      133      103      412.0      STEP 1: 5-period avg demand = (102+140+78+158+150)/5 = 125.6. OR d_bar = 110.7. Gap = (125.6-110.7)/110.7 = 13.4% &lt; 15%,
+15   99       116      105      99       346.0      STEP 1: 5-period avg demand = (140+78+158+150+124)/5 = 130.0. OR d_bar = 111.4. Gap = (130-111.4)/111.4 = 16.7%, which i
+16   58       84       84       58       167.0      STEP 1: 5-period avg demand = (78+158+150+124+99)/5 = 121.8. OR d_bar = 110.8. Gap = (121.8-110.8)/110.8 = 9.9% &lt; 15%, a
+17   103      48       48       103      300.0      STEP 1: 5-period avg demand = (158+150+124+99+58)/5 = 117.8. OR d_bar = 108.3. Gap = (117.8-108.3)/108.3 = 8.8% &lt; 15%, a
+18   46       101      101      46       -15.0      STEP 1: 5-period avg demand = (150+124+99+58+103)/5 = 106.8. OR d_bar = 108.0. Gap = (106.8-108)/108 = -1.1% (&lt;15%). No 
+19   1
+
+... [truncated]</div>
+  </div>
+</div><div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 2 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_004        0.7425     p01_stationary_L0=0.8862, p04_increasing_trend_L0=0.8682, p07_seasonal_L4=0.5406, p08_changepoint_L0=0.8701, p06_variance_L4=0.5472
+2     candidate_002        0.7418     p01_stationary_L0=0.8955, p04_increasing_trend_L0=0.8680, p07_seasonal_L4=0.5245, p08_changepoint_L0=0.8761, p06_variance_L4=0.5451
+3     candidate_005        0.7325     p01_stationary_L0=0.8963, p04_increasing_trend_L0=0.8044, p07_seasonal_L4=0.5416, p08_changepoint_L0=0.8701, p06_variance_L4=0.5502
+4     candidate_001        0.7285     p01_stationary_L0=0.8741, p04_increasing_trend_L0=0.8382, p07_seasonal_L4=0.5361, p08_changepoint_L0=0.8634, p06_variance_L4=0.5309
+5     candidate_003        0.7238     p01_stationary_L0=0.8236, p04_increasing_trend_L0=0.8723, p07_seasonal_L4=0.5681, p08_changepoint_L0=0.8257, p06_variance_L4=0.5292
+6     candidate_000        0.6633     p01_stationary_L0=0.8845, p04_increasing_trend_L0=0.8832, p07_seasonal_L4=0.3964, p08_changepoint_L0=0.8558, p06_variance_L4=0.2966
+
+======================================================================
+DETAILED TRACE: candidate_004 (mean NR = 0.7425)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5406)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4431.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        STEP 1: 5-period avg demand = (76+130+159+101+78)/5 = 108.8, exactly equal to OR's d_bar (108.8). Gap = 0% &lt; 15%, no con
+2    114      162      162      0        0.0        STEP 1: 5-period avg demand = (130+159+101+78+114)/5 = 116.4. d_bar = 109.7. Gap = (116.4-109.7)/109.7 = 6.1% &lt; 15%, no 
+3    86       158      158      0        0.0        STEP 1: 5-period avg demand = (159+101+78+114+114)/5 = 113.2. OR d_bar = 110.3. Gap = (113.2-110.3)/110.3 = 2.6% &lt; 15%, 
+4    118      102      102      0        0.0        STEP 1: 5-period avg demand = (101+78+114+114+86)/5 = 98.6. d_bar = 107.2. Gap = (98.6-107.2)/107.2 = -8.0% (&lt;15%). No c
+5    121      3        3        121      438.0      STEP 1: 5-period avg demand = (78+114+114+86+118)/5 = 102.0. OR d_bar = 108.4. Gap = (102-108.4)/108.4 = -5.9% (&lt;15%). N
+6    75       125      125      75       167.0      STEP 1: 5-period avg demand = (114+114+86+118+121)/5 = 110.6, vs d_bar=109.7, gap=0.8% (&lt;15%). No consistent direction (
+7    74       61       61       74       79.0       STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8. OR d_bar = 106.5. Gap = (102.8-106.5)/106.5 = -3.5%, well u
+8    119      61       61       119      276.0      STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8, vs d_bar=103.8, gap = -1.0% (&lt;15%). No consistent direction
+9    102      120      123      102      307.0      STEP 1: 5-period avg demand = (118+121+75+74+119)/5 = 101.4. OR d_bar = 105.0. Gap = (101.4-105)/105 = -3.4%, well under
+10   140      103      103      140      474.0      STEP 1: 5-period avg demand = (121+75+74+119+102)/5 = 98.2. OR d_bar = 104.8. Gap = (98.2-104.8)/104.8 = -6.3%, less tha
+11   78       149      149      78       243.0      STEP 1: 5-period avg demand = (75+74+119+102+140)/5 = 102.0. OR d_bar = 107.1. Gap = (102.0-107.1)/107.1 = -4.8% (&lt;15%).
+12   158      73       73       130      520.0      STEP 1: 5-period avg demand = (119+102+140+78+?)/5? Wait, last 5 demands: [119, 102, 140, 78, ?] but period 12 demand no
+13   150      150      150      120      480.0      STEP 1: 5-period avg demand = (119+102+140+78+158)/5 = 119.4. OR d_bar = 108.4. Gap = (119.4-108.4)/108.4 = 10.1% &lt; 15%,
+14   124      133      133      103      412.0      STEP 1: 5-period avg demand = (102+140+78+158+150)/5 = 125.6. OR d_bar = 110.7. Gap = (125.6-110.7)/110.7 = 13.4% &lt; 15%,
+15   99       116      105      99       346.0      STEP 1: 5-period avg demand = (140+78+158+150+124)/5 = 130.0. OR d_bar = 111.4. Gap = (130-111.4)/111.4 = 16.7%, which i
+16   58       84       84       58       167.0      STEP 1: 5-period avg demand = (78+158+150+124+99)/5 = 121.8. OR d_bar = 110.8. Gap = (121.8-110.8)/110.8 = 9.9% &lt; 15%, a
+17   103      48       48       103      300.0      STEP 1: 5-period avg demand = (158+150+124+99+58)/5 = 117.8. OR d_bar = 108.3. Gap = (117.8-108.3)/108.3 = 8.8% &lt; 15%, a
+18   46       101      101      46       -15.0      STEP 1: 5-period avg demand = (150+124+99+58+103)/5 = 106.8. OR d_bar = 108.0. Gap = (106.8-108)/108 = -1.1% (&lt;15%). No 
+19   1
+
+... [truncated]</div>
+  </div>
+</div><div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 3 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_004        0.7425     p01_stationary_L0=0.8862, p04_increasing_trend_L0=0.8682, p07_seasonal_L4=0.5406, p08_changepoint_L0=0.8701, p06_variance_L4=0.5472
+2     candidate_002        0.7418     p01_stationary_L0=0.8955, p04_increasing_trend_L0=0.8680, p07_seasonal_L4=0.5245, p08_changepoint_L0=0.8761, p06_variance_L4=0.5451
+3     candidate_005        0.7325     p01_stationary_L0=0.8963, p04_increasing_trend_L0=0.8044, p07_seasonal_L4=0.5416, p08_changepoint_L0=0.8701, p06_variance_L4=0.5502
+4     candidate_001        0.7285     p01_stationary_L0=0.8741, p04_increasing_trend_L0=0.8382, p07_seasonal_L4=0.5361, p08_changepoint_L0=0.8634, p06_variance_L4=0.5309
+5     candidate_003        0.7238     p01_stationary_L0=0.8236, p04_increasing_trend_L0=0.8723, p07_seasonal_L4=0.5681, p08_changepoint_L0=0.8257, p06_variance_L4=0.5292
+6     candidate_000        0.6633     p01_stationary_L0=0.8845, p04_increasing_trend_L0=0.8832, p07_seasonal_L4=0.3964, p08_changepoint_L0=0.8558, p06_variance_L4=0.2966
+
+======================================================================
+DETAILED TRACE: candidate_004 (mean NR = 0.7425)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5406)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4431.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        STEP 1: 5-period avg demand = (76+130+159+101+78)/5 = 108.8, exactly equal to OR's d_bar (108.8). Gap = 0% &lt; 15%, no con
+2    114      162      162      0        0.0        STEP 1: 5-period avg demand = (130+159+101+78+114)/5 = 116.4. d_bar = 109.7. Gap = (116.4-109.7)/109.7 = 6.1% &lt; 15%, no 
+3    86       158      158      0        0.0        STEP 1: 5-period avg demand = (159+101+78+114+114)/5 = 113.2. OR d_bar = 110.3. Gap = (113.2-110.3)/110.3 = 2.6% &lt; 15%, 
+4    118      102      102      0        0.0        STEP 1: 5-period avg demand = (101+78+114+114+86)/5 = 98.6. d_bar = 107.2. Gap = (98.6-107.2)/107.2 = -8.0% (&lt;15%). No c
+5    121      3        3        121      438.0      STEP 1: 5-period avg demand = (78+114+114+86+118)/5 = 102.0. OR d_bar = 108.4. Gap = (102-108.4)/108.4 = -5.9% (&lt;15%). N
+6    75       125      125      75       167.0      STEP 1: 5-period avg demand = (114+114+86+118+121)/5 = 110.6, vs d_bar=109.7, gap=0.8% (&lt;15%). No consistent direction (
+7    74       61       61       74       79.0       STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8. OR d_bar = 106.5. Gap = (102.8-106.5)/106.5 = -3.5%, well u
+8    119      61       61       119      276.0      STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8, vs d_bar=103.8, gap = -1.0% (&lt;15%). No consistent direction
+9    102      120      123      102      307.0      STEP 1: 5-period avg demand = (118+121+75+74+119)/5 = 101.4. OR d_bar = 105.0. Gap = (101.4-105)/105 = -3.4%, well under
+10   140      103      103      140      474.0      STEP 1: 5-period avg demand = (121+75+74+119+102)/5 = 98.2. OR d_bar = 104.8. Gap = (98.2-104.8)/104.8 = -6.3%, less tha
+11   78       149      149      78       243.0      STEP 1: 5-period avg demand = (75+74+119+102+140)/5 = 102.0. OR d_bar = 107.1. Gap = (102.0-107.1)/107.1 = -4.8% (&lt;15%).
+12   158      73       73       130      520.0      STEP 1: 5-period avg demand = (119+102+140+78+?)/5? Wait, last 5 demands: [119, 102, 140, 78, ?] but period 12 demand no
+13   150      150      150      120      480.0      STEP 1: 5-period avg demand = (119+102+140+78+158)/5 = 119.4. OR d_bar = 108.4. Gap = (119.4-108.4)/108.4 = 10.1% &lt; 15%,
+14   124      133      133      103      412.0      STEP 1: 5-period avg demand = (102+140+78+158+150)/5 = 125.6. OR d_bar = 110.7. Gap = (125.6-110.7)/110.7 = 13.4% &lt; 15%,
+15   99       116      105      99       346.0      STEP 1: 5-period avg demand = (140+78+158+150+124)/5 = 130.0. OR d_bar = 111.4. Gap = (130-111.4)/111.4 = 16.7%, which i
+16   58       84       84       58       167.0      STEP 1: 5-period avg demand = (78+158+150+124+99)/5 = 121.8. OR d_bar = 110.8. Gap = (121.8-110.8)/110.8 = 9.9% &lt; 15%, a
+17   103      48       48       103      300.0      STEP 1: 5-period avg demand = (158+150+124+99+58)/5 = 117.8. OR d_bar = 108.3. Gap = (117.8-108.3)/108.3 = 8.8% &lt; 15%, a
+18   46       101      101      46       -15.0      STEP 1: 5-period avg demand = (150+124+99+58+103)/5 = 106.8. OR d_bar = 108.0. Gap = (106.8-108)/108 = -1.1% (&lt;15%). No 
+19   1
+
+... [truncated]</div>
+  </div>
+</div><div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 4 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_004        0.7425     p01_stationary_L0=0.8862, p04_increasing_trend_L0=0.8682, p07_seasonal_L4=0.5406, p08_changepoint_L0=0.8701, p06_variance_L4=0.5472
+2     candidate_002        0.7418     p01_stationary_L0=0.8955, p04_increasing_trend_L0=0.8680, p07_seasonal_L4=0.5245, p08_changepoint_L0=0.8761, p06_variance_L4=0.5451
+3     candidate_005        0.7325     p01_stationary_L0=0.8963, p04_increasing_trend_L0=0.8044, p07_seasonal_L4=0.5416, p08_changepoint_L0=0.8701, p06_variance_L4=0.5502
+4     candidate_001        0.7285     p01_stationary_L0=0.8741, p04_increasing_trend_L0=0.8382, p07_seasonal_L4=0.5361, p08_changepoint_L0=0.8634, p06_variance_L4=0.5309
+5     candidate_003        0.7238     p01_stationary_L0=0.8236, p04_increasing_trend_L0=0.8723, p07_seasonal_L4=0.5681, p08_changepoint_L0=0.8257, p06_variance_L4=0.5292
+6     candidate_000        0.6633     p01_stationary_L0=0.8845, p04_increasing_trend_L0=0.8832, p07_seasonal_L4=0.3964, p08_changepoint_L0=0.8558, p06_variance_L4=0.2966
+
+======================================================================
+DETAILED TRACE: candidate_004 (mean NR = 0.7425)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5406)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4431.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        STEP 1: 5-period avg demand = (76+130+159+101+78)/5 = 108.8, exactly equal to OR's d_bar (108.8). Gap = 0% &lt; 15%, no con
+2    114      162      162      0        0.0        STEP 1: 5-period avg demand = (130+159+101+78+114)/5 = 116.4. d_bar = 109.7. Gap = (116.4-109.7)/109.7 = 6.1% &lt; 15%, no 
+3    86       158      158      0        0.0        STEP 1: 5-period avg demand = (159+101+78+114+114)/5 = 113.2. OR d_bar = 110.3. Gap = (113.2-110.3)/110.3 = 2.6% &lt; 15%, 
+4    118      102      102      0        0.0        STEP 1: 5-period avg demand = (101+78+114+114+86)/5 = 98.6. d_bar = 107.2. Gap = (98.6-107.2)/107.2 = -8.0% (&lt;15%). No c
+5    121      3        3        121      438.0      STEP 1: 5-period avg demand = (78+114+114+86+118)/5 = 102.0. OR d_bar = 108.4. Gap = (102-108.4)/108.4 = -5.9% (&lt;15%). N
+6    75       125      125      75       167.0      STEP 1: 5-period avg demand = (114+114+86+118+121)/5 = 110.6, vs d_bar=109.7, gap=0.8% (&lt;15%). No consistent direction (
+7    74       61       61       74       79.0       STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8. OR d_bar = 106.5. Gap = (102.8-106.5)/106.5 = -3.5%, well u
+8    119      61       61       119      276.0      STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8, vs d_bar=103.8, gap = -1.0% (&lt;15%). No consistent direction
+9    102      120      123      102      307.0      STEP 1: 5-period avg demand = (118+121+75+74+119)/5 = 101.4. OR d_bar = 105.0. Gap = (101.4-105)/105 = -3.4%, well under
+10   140      103      103      140      474.0      STEP 1: 5-period avg demand = (121+75+74+119+102)/5 = 98.2. OR d_bar = 104.8. Gap = (98.2-104.8)/104.8 = -6.3%, less tha
+11   78       149      149      78       243.0      STEP 1: 5-period avg demand = (75+74+119+102+140)/5 = 102.0. OR d_bar = 107.1. Gap = (102.0-107.1)/107.1 = -4.8% (&lt;15%).
+12   158      73       73       130      520.0      STEP 1: 5-period avg demand = (119+102+140+78+?)/5? Wait, last 5 demands: [119, 102, 140, 78, ?] but period 12 demand no
+13   150      150      150      120      480.0      STEP 1: 5-period avg demand = (119+102+140+78+158)/5 = 119.4. OR d_bar = 108.4. Gap = (119.4-108.4)/108.4 = 10.1% &lt; 15%,
+14   124      133      133      103      412.0      STEP 1: 5-period avg demand = (102+140+78+158+150)/5 = 125.6. OR d_bar = 110.7. Gap = (125.6-110.7)/110.7 = 13.4% &lt; 15%,
+15   99       116      105      99       346.0      STEP 1: 5-period avg demand = (140+78+158+150+124)/5 = 130.0. OR d_bar = 111.4. Gap = (130-111.4)/111.4 = 16.7%, which i
+16   58       84       84       58       167.0      STEP 1: 5-period avg demand = (78+158+150+124+99)/5 = 121.8. OR d_bar = 110.8. Gap = (121.8-110.8)/110.8 = 9.9% &lt; 15%, a
+17   103      48       48       103      300.0      STEP 1: 5-period avg demand = (158+150+124+99+58)/5 = 117.8. OR d_bar = 108.3. Gap = (117.8-108.3)/108.3 = 8.8% &lt; 15%, a
+18   46       101      101      46       -15.0      STEP 1: 5-period avg demand = (150+124+99+58+103)/5 = 106.8. OR d_bar = 108.0. Gap = (106.8-108)/108 = -1.1% (&lt;15%). No 
+19   1
+
+... [truncated]</div>
+  </div>
+</div><div class="card">
+  <h3 class="collapsible" onclick="toggleCollapsible(this)">
+    Iteration 5 — Proposer Context
+  </h3>
+  <div class="collapsible-content">
+    <div class="proposer-ctx">======================================================================
+PRIOR HARNESS CANDIDATES — SCORES + TRACES
+======================================================================
+
+## Scoreboard (mean NR across holdout instances)
+
+Rank  Candidate            Mean NR    Per-Instance
+----------------------------------------------------------------------
+1     candidate_004        0.7425     p01_stationary_L0=0.8862, p04_increasing_trend_L0=0.8682, p07_seasonal_L4=0.5406, p08_changepoint_L0=0.8701, p06_variance_L4=0.5472
+2     candidate_002        0.7418     p01_stationary_L0=0.8955, p04_increasing_trend_L0=0.8680, p07_seasonal_L4=0.5245, p08_changepoint_L0=0.8761, p06_variance_L4=0.5451
+3     candidate_005        0.7325     p01_stationary_L0=0.8963, p04_increasing_trend_L0=0.8044, p07_seasonal_L4=0.5416, p08_changepoint_L0=0.8701, p06_variance_L4=0.5502
+4     candidate_001        0.7285     p01_stationary_L0=0.8741, p04_increasing_trend_L0=0.8382, p07_seasonal_L4=0.5361, p08_changepoint_L0=0.8634, p06_variance_L4=0.5309
+5     candidate_003        0.7238     p01_stationary_L0=0.8236, p04_increasing_trend_L0=0.8723, p07_seasonal_L4=0.5681, p08_changepoint_L0=0.8257, p06_variance_L4=0.5292
+6     candidate_000        0.6633     p01_stationary_L0=0.8845, p04_increasing_trend_L0=0.8832, p07_seasonal_L4=0.3964, p08_changepoint_L0=0.8558, p06_variance_L4=0.2966
+
+======================================================================
+DETAILED TRACE: candidate_004 (mean NR = 0.7425)
+======================================================================
+
+### Instance: p07_seasonal_L4 (NR = 0.5406)
+    Item: chips(Regular), L=4, rho=0.80, Total Demand=2049
+    Total Reward: $4431.0
+
+P    Demand   Order    ORRec    Sold     Reward     LLM Rationale (truncated)
+----------------------------------------------------------------------------------------------------
+1    114      167      167      0        0.0        STEP 1: 5-period avg demand = (76+130+159+101+78)/5 = 108.8, exactly equal to OR's d_bar (108.8). Gap = 0% &lt; 15%, no con
+2    114      162      162      0        0.0        STEP 1: 5-period avg demand = (130+159+101+78+114)/5 = 116.4. d_bar = 109.7. Gap = (116.4-109.7)/109.7 = 6.1% &lt; 15%, no 
+3    86       158      158      0        0.0        STEP 1: 5-period avg demand = (159+101+78+114+114)/5 = 113.2. OR d_bar = 110.3. Gap = (113.2-110.3)/110.3 = 2.6% &lt; 15%, 
+4    118      102      102      0        0.0        STEP 1: 5-period avg demand = (101+78+114+114+86)/5 = 98.6. d_bar = 107.2. Gap = (98.6-107.2)/107.2 = -8.0% (&lt;15%). No c
+5    121      3        3        121      438.0      STEP 1: 5-period avg demand = (78+114+114+86+118)/5 = 102.0. OR d_bar = 108.4. Gap = (102-108.4)/108.4 = -5.9% (&lt;15%). N
+6    75       125      125      75       167.0      STEP 1: 5-period avg demand = (114+114+86+118+121)/5 = 110.6, vs d_bar=109.7, gap=0.8% (&lt;15%). No consistent direction (
+7    74       61       61       74       79.0       STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8. OR d_bar = 106.5. Gap = (102.8-106.5)/106.5 = -3.5%, well u
+8    119      61       61       119      276.0      STEP 1: 5-period avg demand = (114+86+118+121+75)/5 = 102.8, vs d_bar=103.8, gap = -1.0% (&lt;15%). No consistent direction
+9    102      120      123      102      307.0      STEP 1: 5-period avg demand = (118+121+75+74+119)/5 = 101.4. OR d_bar = 105.0. Gap = (101.4-105)/105 = -3.4%, well under
+10   140      103      103      140      474.0      STEP 1: 5-period avg demand = (121+75+74+119+102)/5 = 98.2. OR d_bar = 104.8. Gap = (98.2-104.8)/104.8 = -6.3%, less tha
+11   78       149      149      78       243.0      STEP 1: 5-period avg demand = (75+74+119+102+140)/5 = 102.0. OR d_bar = 107.1. Gap = (102.0-107.1)/107.1 = -4.8% (&lt;15%).
+12   158      73       73       130      520.0      STEP 1: 5-period avg demand = (119+102+140+78+?)/5? Wait, last 5 demands: [119, 102, 140, 78, ?] but period 12 demand no
+13   150      150      150      120      480.0      STEP 1: 5-period avg demand = (119+102+140+78+158)/5 = 119.4. OR d_bar = 108.4. Gap = (119.4-108.4)/108.4 = 10.1% &lt; 15%,
+14   124      133      133      103      412.0      STEP 1: 5-period avg demand = (102+140+78+158+150)/5 = 125.6. OR d_bar = 110.7. Gap = (125.6-110.7)/110.7 = 13.4% &lt; 15%,
+15   99       116      105      99       346.0      STEP 1: 5-period avg demand = (140+78+158+150+124)/5 = 130.0. OR d_bar = 111.4. Gap = (130-111.4)/111.4 = 16.7%, which i
+16   58       84       84       58       167.0      STEP 1: 5-period avg demand = (78+158+150+124+99)/5 = 121.8. OR d_bar = 110.8. Gap = (121.8-110.8)/110.8 = 9.9% &lt; 15%, a
+17   103      48       48       103      300.0      STEP 1: 5-period avg demand = (158+150+124+99+58)/5 = 117.8. OR d_bar = 108.3. Gap = (117.8-108.3)/108.3 = 8.8% &lt; 15%, a
+18   46       101      101      46       -15.0      STEP 1: 5-period avg demand = (150+124+99+58+103)/5 = 106.8. OR d_bar = 108.0. Gap = (106.8-108)/108 = -1.1% (&lt;15%). No 
+19   1
+
+... [truncated]</div>
+  </div>
+</div>
+<div style="text-align:center; margin-top:48px; padding:24px;
+  border-top:1px solid var(--border); color: var(--muted); font-size:0.8em;">
+  Meta-Harness Report · Plan B (深 Trace) · Generated 2026-05-17T22:36:24.698017
+  · <a href="https://arxiv.org/abs/2603.28052" style="color:var(--accent);">
+    arXiv:2603.28052</a>
+</div>
+</body>
+</html>
