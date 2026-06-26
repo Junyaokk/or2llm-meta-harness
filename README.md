@@ -1,53 +1,55 @@
-# OR→LLM 库存控制实验框架
+# OR2LLM Meta-Harness: AI Agents for Inventory Control
 
-> 论文 "AI Agents for Inventory Control" 复现 —— 固定提前期模式 (L=0, L=4)，DeepSeek Chat 作为 LLM 后端。
-
----
-
-## 论文 → 代码映射
-
-```
-论文结构                             代码模块
-─────────                           ────────
-Section 3: Problem Formulation  →  env.py          (InventoryEnv, 状态转移)
-Appendix A: OR Baseline         →  or_baseline.py  (Capped Base-stock Policy)
-Appendix B: System Prompt       →  agent.py        (SYSTEM_PROMPT_TEMPLATE)
-Section 3.1: LLM Agent Design   →  agent.py        (ORToLLMAgent, UserMessageBuilder)
-Section 4: Experimental Setup   →  data.py         (InstanceLoader, InventoryBench 480实例)
-Section 4.2: Evaluation Metrics →  data.py         (normalized_reward)
-```
+> Reproducing the paper "AI Agents for Inventory Control" — fixed lead-time modes (L=0, L=4) with DeepSeek Chat as the LLM backend, plus a meta-optimization framework for automated prompt engineering.
 
 ---
 
-## 工程架构总图
+## Paper → Code Mapping
+
+```
+Paper Section                        Code Module
+─────────────                        ──────────
+Section 3: Problem Formulation  →   env.py          (InventoryEnv, state transitions)
+Appendix A: OR Baseline         →   or_baseline.py  (Capped Base-stock Policy)
+Appendix B: System Prompt       →   agent.py        (SYSTEM_PROMPT_TEMPLATE)
+Section 3.1: LLM Agent Design   →   agent.py        (ORToLLMAgent, UserMessageBuilder)
+Section 4: Experimental Setup   →   data.py         (InstanceLoader, InventoryBench 480 instances)
+Section 4.2: Evaluation Metrics →   data.py         (normalized_reward)
+```
+
+---
+
+## System Architecture
 
 ```text
 ╔═══════════════════════════════════════════════════════════════════════╗
-║                   OR→LLM 库存控制实验框架                              ║
-║         论文 "AI Agents for Inventory Control" 复现                   ║
+║                   OR2LLM Inventory Control Framework                  ║
+║          Reproducing "AI Agents for Inventory Control"                ║
 ╠═══════════════════════════════════════════════════════════════════════╣
 ║                                                                       ║
 ║  ┌─────────────────────────────────────────────────────────────┐     ║
-║  │                     run.py  通用实验入口                      │     ║
+║  │               run.py  Universal Experiment Entry Point       │     ║
 ║  │  python run.py --index <1-480> --periods <T> [--verbose]    │     ║
 ║  └─────┬──────────────┬────────────────────┬───────────────────┘     ║
 ║        │              │                    │                          ║
 ║        ▼              ▼                    ▼                          ║
 ║  ┌──────────┐  ┌──────────────┐  ┌──────────────────────┐           ║
-║  │ 数据加载  │  │  库存环境     │  │  OR→LLM 智能体       │           ║
-║  │ data.py  │  │  env.py      │  │  agent.py            │           ║
-║  │          │  │              │  │                      │           ║
-║  │Instance  │  │InventoryEnv  │  │ ORToLLMAgent         │           ║
-║  │Loader    │  │              │  │  ├─ ORBaseline       │           ║
-║  │          │  │ .step(q)     │  │  │  (or_baseline.py) │           ║
-║  │.load()   │  │ .get_obs()   │  │  ├─ UserMsgBuilder   │           ║
-║  │          │  │              │  │  ├─ DeepSeek API     │           ║
-║  │normalized│  │InTransitOrder│  │  └─ ResponseParser   │           ║
-║  │_reward() │  │PeriodResult  │  │                      │           ║
+║  │  Data     │  │  Inventory   │  │  OR→LLM Agent        │           ║
+║  │  Loading  │  │  Environment │  │                      │           ║
+║  │  data.py  │  │  env.py      │  │  agent.py            │           ║
+║  │           │  │              │  │                      │           ║
+║  │ Instance  │  │ InventoryEnv │  │ ORToLLMAgent         │           ║
+║  │ Loader    │  │              │  │  ├─ ORBaseline       │           ║
+║  │           │  │ .step(q)     │  │  │  (or_baseline.py) │           ║
+║  │ .load()   │  │ .get_obs()   │  │  ├─ UserMsgBuilder   │           ║
+║  │           │  │              │  │  ├─ DeepSeek API     │           ║
+║  │ normalized│  │ InTransit    │  │  └─ ResponseParser   │           ║
+║  │ _reward() │  │ Order,       │  │                      │           ║
+║  │           │  │ PeriodResult │  │                      │           ║
 ║  └─────┬────┘  └──────┬───────┘  └──────────┬───────────┘           ║
 ║        │              │                     │                        ║
 ║        │     ┌────────┴────────┐            │                        ║
-║        │     │  每周期循环      │◀───────────┘                        ║
+║        │     │  Per-Period Loop│◀───────────┘                        ║
 ║        │     │                │                                      ║
 ║        │     │ ① obs = env.get_initial_observation()                 ║
 ║        │     │ ② q = agent.decide(obs, context)                      ║
@@ -56,68 +58,68 @@ Section 4.2: Evaluation Metrics →  data.py         (normalized_reward)
 ║        │     │     ├─ json = DeepSeek(messages=[sys, msg])           ║
 ║        │     │     └─ parsed = ResponseParser.parse(json, item_id)   ║
 ║        │     │ ③ result = env.step(q)                                ║
-║        │     │     ├─ 下单: InTransitOrder(t, q, L)                  ║
-║        │     │     ├─ 到货: arrived = sum(o for o if o.arrives@t)    ║
-║        │     │     ├─ 销售: sold = min(d_t, on_hand)                 ║
-║        │     │     └─ 结账: R = p·sold - h·end_inv                   ║
+║        │     │     ├─ Place order: InTransitOrder(t, q, L)           ║
+║        │     │     ├─ Arrivals: sum(o for o if o.arrives@t)          ║
+║        │     │     ├─ Sales: sold = min(d_t, on_hand)                ║
+║        │     │     └─ Reward: R = p·sold - h·end_inv                 ║
 ║        │     │ ④ obs = result["observation"]                         ║
-║        │     │ ⑤ 如果 !done, goto ②                                  ║
+║        │     │ ⑤ if !done, goto ②                                   ║
 ║        │     └────────────────────────────┘                          ║
-║        │                                                            ║
-║        ▼                                                            ║
-║  ┌──────────────────────────────────────────┐                       ║
-║  │  评估输出                                │                       ║
-║  │  NR = total_reward / (p × sum(demand))   │                       ║
-║  │  → run_result_{index}.json               │                       ║
-║  └──────────────────────────────────────────┘                       ║
+║        │                                                             ║
+║        ▼                                                             ║
+║  ┌──────────────────────────────────────────┐                        ║
+║  │  Evaluation Output                        │                       ║
+║  │  NR = total_reward / (p × sum(demand))    │                       ║
+║  │  → run_result_{index}.json                │                       ║
+║  └──────────────────────────────────────────┘                        ║
 ║                                                                       ║
 ╠═══════════════════════════════════════════════════════════════════════╣
-║  论文对照                                                             ║
+║  Paper Reference                                                       ║
 ╠═══════════════════════════════════════════════════════════════════════╣
-║  §3  Problem Formulation     → env.py      InventoryEnv, step()     ║
-║  §3.1 LLM Agent Design       → agent.py    ORToLLMAgent, decide()   ║
-║  App A OR Baseline           → or_baseline.py ORBaseline.compute()  ║
-║  App B System Prompt         → agent.py    SYSTEM_PROMPT_TEMPLATE   ║
-║  §4   Experimental Setup     → data.py     InstanceLoader, 480实例  ║
-║  §4.2 Evaluation             → data.py     normalized_reward()      ║
-║  Fig 2 Agent Architecture    → 下图        每周期决策循环 A-B-C-D    ║
+║  §3  Problem Formulation     → env.py      InventoryEnv, step()      ║
+║  §3.1 LLM Agent Design       → agent.py    ORToLLMAgent, decide()    ║
+║  App A OR Baseline           → or_baseline.py ORBaseline.compute()   ║
+║  App B System Prompt         → agent.py    SYSTEM_PROMPT_TEMPLATE    ║
+║  §4   Experimental Setup     → data.py     InstanceLoader, 480 insts ║
+║  §4.2 Evaluation             → data.py     normalized_reward()       ║
+║  Fig 2 Agent Architecture    → below       Per-period loop A-B-C-D   ║
 ╚═══════════════════════════════════════════════════════════════════════╝
 ```
 
 ---
 
-## 算法架构图（对齐论文 Figure 2）
+## Algorithm Architecture (Paper Figure 2)
 
 ```text
                    ┌──────────────────────────────┐
                    │   System Prompt (Appendix B)  │
-                   │   p, h, L → q, z*, cap 公式    │
+                   │   p, h, L → q, z*, cap        │
                    └──────────────┬───────────────┘
-                                  │ 每周期注入
+                                  │ Injected each period
                                   ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│  Per-Period Agent Decision Loop (Fig. 2 in paper)              │
+│  Per-Period Agent Decision Loop (Fig. 2 in paper)               │
 │                                                                 │
-│  输入: Observation o_t                                          │
-│       ├── on_hand_inventory                                    │
-│       ├── in_transit_orders[]                                  │
-│       ├── demand_history[]                                     │
-│       └── last_period_conclude                                 │
+│  Input: Observation o_t                                          │
+│        ├── on_hand_inventory                                    │
+│        ├── in_transit_orders[]                                  │
+│        ├── demand_history[]                                     │
+│        └── last_period_conclude                                 │
 │                                                                 │
 │  ┌──────────────────────────────────────────────────────┐      │
 │  │ Step A: OR Baseline (Appendix A)                     │      │
-│  │   d̄ = mean(history)    s_d = std(history)           │      │
+│  │   d̄ = mean(history)    s_d = std(history)            │      │
 │  │   μ̂ = (1+L)·d̄          σ̂ = √(1+L)·s_d               │      │
-│  │   B = μ̂ + z*·σ̂         z* = Φ⁻¹(p/(p+h))           │      │
-│  │   cap = μ̂/(1+L) + Φ⁻¹(0.95)·σ̂/√(1+L)              │      │
-│  │   q_or = max(0, min(B - IP, cap))                   │      │
+│  │   B = μ̂ + z*·σ̂         z* = Φ⁻¹(p/(p+h))            │      │
+│  │   cap = μ̂/(1+L) + Φ⁻¹(0.95)·σ̂/√(1+L)               │      │
+│  │   q_or = max(0, min(B - IP, cap))                    │      │
 │  └──────────────────────┬───────────────────────────────┘      │
 │                         ▼                                       │
 │  ┌──────────────────────────────────────────────────────┐      │
 │  │ Step B: User Message Assembly                        │      │
-│  │   Part 1: carry_over_insights (跨期记忆)              │      │
-│  │   Part 2: current observation                       │      │
-│  │   Part 3: OR recommendation (全部统计量)              │      │
+│  │   Part 1: carry_over_insights (cross-period memory)   │      │
+│  │   Part 2: current observation                        │      │
+│  │   Part 3: OR recommendation (all statistics)          │      │
 │  └──────────────────────┬───────────────────────────────┘      │
 │                         ▼                                       │
 │  ┌──────────────────────────────────────────────────────┐      │
@@ -125,66 +127,66 @@ Section 4.2: Evaluation Metrics →  data.py         (normalized_reward)
 │  │   Input: system_prompt + user_message                │      │
 │  │   Output: JSON {rationale, short_rationale,          │      │
 │  │                 carry_over_insight, action}          │      │
-│  │   Fallback: parse失败 → 使用 q_or                    │      │
+│  │   Fallback: parse failure → use q_or                 │      │
 │  └──────────────────────┬───────────────────────────────┘      │
 │                         ▼                                       │
 │  ┌──────────────────────────────────────────────────────┐      │
 │  │ Step D: State Transition (env.step)                  │      │
-│  │   1. 订单登记 (InTransitOrder)                       │      │
-│  │   2. 到货结算 (arrival_period == t 的订单到库)        │      │
-│  │   3. 需求满足 (sold = min(d_t, on_hand))             │      │
-│  │   4. 奖励计算 (R_t = p·sold - h·ending_inv)          │      │
-│  │   5. 产出 o_{t+1}                                    │      │
+│  │   1. Register order (InTransitOrder)                 │      │
+│  │   2. Process arrivals (orders where arrival == t)    │      │
+│  │   3. Fulfill demand (sold = min(d_t, on_hand))       │      │
+│  │   4. Compute reward (R_t = p·sold - h·ending_inv)    │      │
+│  │   5. Produce o_{t+1}                                 │      │
 │  └──────────────────────────────────────────────────────┘      │
 │                                                                 │
-│  输出: order_quantity q_t, next_observation o_{t+1}, reward R_t│
+│  Output: order_quantity q_t, next_observation o_{t+1}, reward   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 各步骤输入输出详细清单（逐文件）
+## Per-File I/O Specification
 
-### `data.py` — 数据加载层
+### `data.py` — Data Loading Layer
 
-| 函数/类 | 输入 | 来源 | 输出 | 去向 |
-|---------|------|------|------|------|
-| `InstanceLoader(instance_dir)` | 目录路径 str | run.py CLI | loader 对象 | run.py |
-| `.load()` | train.csv + test.csv | InventoryBench 文件系统 | `config` dict (9个字段) | run.py → env + agent 初始化 |
-| `_read_csv(path)` | CSV 路径 (含 git-lfs header) | 同上 | pandas DataFrame | `.load()` 内部 |
-| `normalized_reward(R, p, Σd)` | total_reward, p, total_demand | env + config | float ∈ [0,1] | 终端输出 + JSON |
-| `build_instance_index(base_dir)` | benchmark 根目录 | 文件系统 | list[dict] (480条) | run.py --list |
-| `run_single_instance(dir, model, periods)` | 实例目录 + model + 截断周期 | 外部调用 | dict (结果汇总) | save_results() |
-| `save_results(results, path)` | 结果 dict + 输出路径 | 调用方 | JSON 文件 | 磁盘 |
+| Function/Class | Input | Source | Output | Consumer |
+|---------------|-------|--------|--------|----------|
+| `InstanceLoader(instance_dir)` | Directory path str | run.py CLI | loader object | run.py |
+| `.load()` | train.csv + test.csv | InventoryBench filesystem | `config` dict (9 fields) | run.py → env + agent init |
+| `_read_csv(path)` | CSV path (with git-lfs header) | same as above | pandas DataFrame | `.load()` internal |
+| `normalized_reward(R, p, Σd)` | total_reward, p, total_demand | env + config | float ∈ [0,1] | terminal output + JSON |
+| `build_instance_index(base_dir)` | benchmark root dir | filesystem | list[dict] (480 entries) | run.py --list |
+| `run_single_instance(dir, model, periods)` | instance dir + model + truncated periods | external call | dict (result summary) | save_results() |
+| `save_results(results, path)` | result dict + output path | caller | JSON file | disk |
 
-### `env.py` — 库存环境层
+### `env.py` — Inventory Environment Layer
 
-| 方法 | 输入 | 来源 | 输出 | 去向 |
-|------|------|------|------|------|
-| `InventoryEnv.__init__` | demands[], L, p, h, initial_demands[] | InstanceLoader.load() | env 对象 (t=1, on_hand=0) | run.py |
-| `get_initial_observation()` | 无 (读内部状态) | — | `obs` dict (7个字段) | agent.decide() |
-| `step(q_t)` | 订货量 int | agent.decide() | `{period, reward, done, observation}` | run.py 主循环 |
-| `_build_observation()` | 内部状态 (t, on_hand, in_transit, history) | env 自身 | `obs` dict | step() / get_initial_observation() |
-| `critical_fractile` (property) | — | p, h | ρ = p/(p+h) | 仅展示 |
+| Method | Input | Source | Output | Consumer |
+|--------|-------|--------|--------|----------|
+| `InventoryEnv.__init__` | demands[], L, p, h, initial_demands[] | InstanceLoader.load() | env object (t=1, on_hand=0) | run.py |
+| `get_initial_observation()` | none (reads internal state) | — | `obs` dict (7 fields) | agent.decide() |
+| `step(q_t)` | order quantity int | agent.decide() | `{period, reward, done, observation}` | run.py main loop |
+| `_build_observation()` | internal state (t, on_hand, in_transit, history) | env self | `obs` dict | step() / get_initial_observation() |
+| `critical_fractile` (property) | — | p, h | ρ = p/(p+h) | display only |
 
-**`step()` 内部子步骤:**
+**Sub-steps within `step()`:**
 
-| 子步骤 | 操作 | 影响的内部状态 |
-|--------|------|---------------|
-| ① 下单 | `InTransitOrder(period_placed=t, quantity=q, lead_time=L)` | `in_transit[]` append |
-| ② 到货 | 遍历 `in_transit[]`, `arrival_period == t` 的加总 | `on_hand += arrivals`, 移除已到订单 |
-| ③ 需求 | `sold = min(demands[t-1], on_hand)` | `on_hand -= sold` |
-| ④ 结账 | `R = p*sold - h*ending_inv` | `total_reward += R`, `PeriodResult` 写入 `period_results[]` |
-| ⑤ 记录 | `demand_history.append(d_t)` | `demand_history[]` 增长 |
+| Sub-step | Operation | State Affected |
+|----------|-----------|---------------|
+| ① Place order | `InTransitOrder(period_placed=t, quantity=q, lead_time=L)` | `in_transit[]` append |
+| ② Process arrivals | Iterate `in_transit[]`, sum orders where `arrival_period == t` | `on_hand += arrivals`, remove arrived orders |
+| ③ Fulfill demand | `sold = min(demands[t-1], on_hand)` | `on_hand -= sold` |
+| ④ Compute reward | `R = p*sold - h*ending_inv` | `total_reward += R`, `PeriodResult` appended |
+| ⑤ Record | `demand_history.append(d_t)` | `demand_history[]` grows |
 
-### `or_baseline.py` — OR 基线层
+### `or_baseline.py` — OR Baseline Layer
 
-| 方法 | 输入 | 来源 | 输出 | 去向 |
-|------|------|------|------|------|
-| `ORBaseline.__init__(L, p, h)` | L, p, h | config | `rho`, `z_star=Φ⁻¹(ρ)`, `z_cap=Φ⁻¹(0.95)` | agent 内部持有 |
-| `.compute(demand_history, on_hand, in_transit_total)` | 历史需求 [], 在手库存, 在途总量 | obs dict | `ORRecommendation` (12字段) | agent.decide() → UserMessageBuilder + fallback |
+| Method | Input | Source | Output | Consumer |
+|--------|-------|--------|--------|----------|
+| `ORBaseline.__init__(L, p, h)` | L, p, h | config | `rho`, `z_star=Φ⁻¹(ρ)`, `z_cap=Φ⁻¹(0.95)` | agent internal |
+| `.compute(demand_history, on_hand, in_transit_total)` | demand history [], on-hand, in-transit total | obs dict | `ORRecommendation` (12 fields) | agent.decide() → UserMessageBuilder + fallback |
 
-**`compute()` 内部计算链:**
+**`compute()` internal chain:**
 
 ```text
 demand_history[n]  ──▶  d̄ = mean, s_d = std(ddof=1)
@@ -199,151 +201,172 @@ demand_history[n]  ──▶  d̄ = mean, s_d = std(ddof=1)
                          └──▶ q = max(0, min(B - IP, cap))
 ```
 
-### `agent.py` — 智能体决策层
+### `agent.py` — Agent Decision Layer
 
-| 方法/类 | 输入 | 来源 | 输出 | 去向 |
-|---------|------|------|------|------|
-| `ORToLLMAgent.__init__` | item_id, L, p, h, model, api_key | config + 默认值 | agent (含 system_prompt, client, ORBaseline) | run.py |
-| `_build_system_prompt()` | item_id, L, p, h (self) | `__init__` | 格式化的 System Prompt 字符串 | `_call_llm()` |
-| `decide(obs, context)` | obs dict + SKU描述 | env.get_obs() + config | 订货量 int | env.step() |
-| `_call_llm(user_msg, retries)` | user_message str | UserMessageBuilder | LLM JSON 字符串 | ResponseParser |
-| `run_episode(env, context)` | env + context | 外部 | (orders[], total_reward, history[]) | run_single_instance() |
+| Method/Class | Input | Source | Output | Consumer |
+|-------------|-------|--------|--------|----------|
+| `ORToLLMAgent.__init__` | item_id, L, p, h, model, api_key | config + defaults | agent (with system_prompt, client, ORBaseline) | run.py |
+| `_build_system_prompt()` | item_id, L, p, h (self) | `__init__` | Formatted System Prompt string | `_call_llm()` |
+| `decide(obs, context)` | obs dict + SKU description | env.get_obs() + config | order quantity int | env.step() |
+| `_call_llm(user_msg, retries)` | user_message str | UserMessageBuilder | LLM JSON string | ResponseParser |
+| `run_episode(env, context)` | env + context | external | (orders[], total_reward, history[]) | run_single_instance() |
 
-**`decide()` 内部子步骤:**
+**`decide()` internal sub-steps:**
 
-| 子步骤 | 方法/类 | 输入 | 输出 |
-|--------|---------|------|------|
-| OR推荐 | `ORBaseline.compute()` | demand_history, on_hand, in_transit_total | `ORRecommendation` |
-| 消息构建 | `UserMessageBuilder.build()` | obs, or_rec, carry_over_insights, item_id, context | 3段式 user_message str |
-| LLM调用 | `_call_llm()` | user_message | LLM JSON str |
-| 解析 | `ResponseParser.parse()` | JSON str, item_id | `AgentResponse` |
-| 容错 | try/except | 解析异常 | 降级为 `AgentResponse(q=or_rec.recommended_order)` |
-| 更新洞察 | `carry_over_insights = parsed.carry_over_insight` | LLM洞察文本 | 下周期注入 |
+| Sub-step | Method/Class | Input | Output |
+|----------|-------------|-------|--------|
+| OR recommendation | `ORBaseline.compute()` | demand_history, on_hand, in_transit_total | `ORRecommendation` |
+| Message assembly | `UserMessageBuilder.build()` | obs, or_rec, carry_over_insights, item_id, context | 3-part user_message str |
+| LLM inference | `_call_llm()` | user_message | LLM JSON str |
+| Parse | `ResponseParser.parse()` | JSON str, item_id | `AgentResponse` |
+| Fallback | try/except | parse error | downgrade to `AgentResponse(q=or_rec.recommended_order)` |
+| Insight update | `carry_over_insights = parsed.carry_over_insight` | LLM insight text | next period injection |
 
-**`UserMessageBuilder.build()` 输出结构:**
+**`UserMessageBuilder.build()` output structure:**
 
 ```text
-Part 1 (有洞察时): ═══ CARRY-OVER INSIGHTS ═══
-                   上次LLM发现的新趋势/变化
+Part 1 (when insights exist): ═══ CARRY-OVER INSIGHTS ═══
+                   LLM-discovered new trends/changes from prior period
 
-Part 2:             PERIOD 3 / 50
-                    === CURRENT STATUS ===
-                    Item: chips(Regular)
-                    On-hand inventory: 50
-                    In-transit orders (117 total):
-                      Period 3: 117 units (lead_time=4, waited 1 periods)
-                    === LAST PERIOD CONCLUDE ===
-                    Period 2 conclude: ordered=120, arrived=0, ...
-                    Recent demand history (last 10 periods): [...]
-                    All demand history (12 periods): [...]
+Part 2:            PERIOD 3 / 50
+                   === CURRENT STATUS ===
+                   Item: chips(Regular)
+                   On-hand inventory: 50
+                   In-transit orders (117 total):
+                     Period 3: 117 units (lead_time=4, waited 1 periods)
+                   === LAST PERIOD CONCLUDE ===
+                   Period 2 conclude: ordered=120, arrived=0, ...
+                   Recent demand history (last 10 periods): [...]
+                   All demand history (12 periods): [...]
 
-Part 3:             ═══ OR ALGORITHM RECOMMENDATIONS ═══
-                    Demand mean (d_bar): 100.0
-                    Demand std (s_d): 15.0
-                    ...
-                    OR recommended order: 73
+Part 3:            ═══ OR ALGORITHM RECOMMENDATIONS ═══
+                   Demand mean (d_bar): 100.0
+                   Demand std (s_d): 15.0
+                   ...
+                   OR recommended order: 73
 ```
 
-**`AgentResponse` 字段:**
+**`AgentResponse` fields:**
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| `rationale` | str | LLM 完整推理过程 |
-| `short_rationale_for_human` | str | 1-3句摘要 (日志展示用) |
-| `carry_over_insight` | str | 跨期洞察 (空串="无新发现") |
-| `order_quantity` | int | 最终订货决策 |
-| `raw_json` | dict | LLM 原始 JSON (调试用) |
+| Field | Type | Description |
+|-------|------|-------------|
+| `rationale` | str | LLM full reasoning process |
+| `short_rationale_for_human` | str | 1-3 sentence summary (for logging) |
+| `carry_over_insight` | str | Cross-period insight (empty = "no new findings") |
+| `order_quantity` | int | Final ordering decision |
+| `raw_json` | dict | LLM raw JSON (for debugging) |
 
 ---
 
-## 论文公式 → 代码映射
+## Paper Formula → Code Mapping
 
-| 论文符号 | 含义 | 代码变量 | 所在位置 |
-|---------|------|---------|---------|
-| L | 固定提前期 | `lead_time` | `InventoryEnv.__init__` |
-| p | 单位销售利润 | `p` | `InventoryEnv.__init__` |
-| h | 单位持货成本 | `h` | `InventoryEnv.__init__` |
-| ρ = p/(p+h) | 关键分位数 | `critical_fractile` / `rho` | `InventoryEnv` property / `ORBaseline.__init__` |
-| z* = Φ⁻¹(ρ) | 安全因子 | `z_star` | `ORBaseline.__init__` |
-| d̄ | 需求样本均值 | `d_bar` | `ORBaseline.compute()` |
-| s_d | 需求样本标准差 | `s_d` | `ORBaseline.compute()` |
-| μ̂ = (1+L)·d̄ | 提前期内需求均值 | `mu_hat` | `ORBaseline.compute()` |
-| σ̂ = √(1+L)·s_d | 提前期内需求标准差 | `sigma_hat` | `ORBaseline.compute()` |
-| B = μ̂ + z*·σ̂ | 基准库存水平 | `base_stock_level` / `B` | `ORBaseline.compute()` |
-| IP = on_hand + pipeline | 库存位置 | `inventory_position` / `IP` | `ORBaseline.compute()` |
-| cap | 订货上限 | `order_cap` / `cap` | `ORBaseline.compute()` |
-| q_t | 决策订货量 | `recommended_order` / `order_quantity` | `ORRecommendation` / `AgentResponse` |
-| R_t = p·sold - h·end_inv | 单期奖励 | `daily_reward` | `PeriodResult` |
-| NR = ΣR_t / (p·Σd_t) | 归一化奖励 | `normalized_reward()` | `data.py` |
+| Paper Symbol | Meaning | Code Variable | Location |
+|-------------|---------|---------------|----------|
+| L | Fixed lead time | `lead_time` | `InventoryEnv.__init__` |
+| p | Unit sales profit | `p` | `InventoryEnv.__init__` |
+| h | Unit holding cost | `h` | `InventoryEnv.__init__` |
+| ρ = p/(p+h) | Critical fractile | `critical_fractile` / `rho` | `InventoryEnv` property / `ORBaseline.__init__` |
+| z* = Φ⁻¹(ρ) | Safety factor | `z_star` | `ORBaseline.__init__` |
+| d̄ | Demand sample mean | `d_bar` | `ORBaseline.compute()` |
+| s_d | Demand sample std | `s_d` | `ORBaseline.compute()` |
+| μ̂ = (1+L)·d̄ | Lead-time demand mean | `mu_hat` | `ORBaseline.compute()` |
+| σ̂ = √(1+L)·s_d | Lead-time demand std | `sigma_hat` | `ORBaseline.compute()` |
+| B = μ̂ + z*·σ̂ | Base-stock level | `base_stock_level` / `B` | `ORBaseline.compute()` |
+| IP = on_hand + pipeline | Inventory position | `inventory_position` / `IP` | `ORBaseline.compute()` |
+| cap | Order cap | `order_cap` / `cap` | `ORBaseline.compute()` |
+| q_t | Decision order quantity | `recommended_order` / `order_quantity` | `ORRecommendation` / `AgentResponse` |
+| R_t = p·sold - h·end_inv | Single-period reward | `daily_reward` | `PeriodResult` |
+| NR = ΣR_t / (p·Σd_t) | Normalized reward | `normalized_reward()` | `data.py` |
 
 ---
 
-## 快速开始
+## Meta-Harness: Prompt Optimization Framework
 
-### 环境依赖
+Beyond the core agent, this repo includes a **meta-optimization framework** (`meta_harness/`) that uses Claude Code to automatically search for better system prompts.
+
+### Architecture Evolution
+
+| Architecture | Agents | LLM Calls/Period | Key Innovation |
+|-------------|--------|------------------|----------------|
+| H1 | 1 | 1× | Single-agent system prompt search |
+| H2 | 2 | 1× | Analyst (Python compute) + Decider (LLM judgment) separation |
+| H2X | 3 | 2× | Structured Memory Buffer + Reviewer (four-eyes principle) |
+| H2M | 2 (dialog) | 2-3× | Conversational multi-agent, Decider has Last Word |
+
+### H1 → H2 → H2X → H2M Causal Chain
+
+- **H1 baseline**: Single prompt handles both computation AND judgment → LLM hallucinates calculations, collapses on L=4 scenarios (NR=29% on variance change)
+- **H2**: Separates compute (Python Analyst: pipeline status, trend direction, OR trust) from judgment (LLM Decider) → baseline jumps +9.8% without any optimization
+- **H2X**: Replaces single-string `carry_over_insight` with structured table of last 5 periods (demand/order/sold/reward/pipeline/trend) + Reviewer sanity check before execution
+- **H2M**: Upgrades one-way review to conversational multi-agent — Decider proposes, Reviewer critiques, Decider revises with final authority (matches enterprise reality)
+
+Key insight: **Architecture determines the baseline (lower bound) and robustness; optimization determines the peak (upper bound).**
+
+---
+
+## Quick Start
+
+### Requirements
 
 ```bash
-pip install numpy pandas scipy openai
+pip install numpy pandas scipy openai plotly
 ```
 
-### 数据准备
+### Data Preparation
 
 ```bash
-# 克隆 InventoryBench 数据集 (含 Git LFS)
+# Clone InventoryBench dataset (requires Git LFS)
 git clone git@github.com:TianyiPeng/InventoryBench.git InventoryBench-main
 cd InventoryBench-main
 git sparse-checkout set benchmark/synthetic_trajectory/lead_time_0 benchmark/synthetic_trajectory/lead_time_4
 git lfs pull
 ```
 
-### 运行
+### Running
 
 ```bash
-# 列出所有 480 个实例
+# List all 480 instances
 python run.py --list
 
-# 运行单个实例 (默认 50 周期)
+# Run a single instance (default 50 periods)
 python run.py --index 1
 
-# 指定周期数 + 详细输出
+# Specify period count + verbose output
 python run.py --index 1 --periods 30 -v
 
-# 指定输出文件
-python run.py --index 1 --output results/exp_001.json
-
-# 全链路追踪 (Step A/B/C/D 详细日志)
+# Full trace (Steps A/B/C/D detailed log)
 python run.py --index 1 --periods 20 --trace --trace-file trace.log
 
-# 生成交互式 Dashboard (Plotly HTML)
+# Generate interactive Plotly dashboard
 python run.py --index 1 --periods 30 --plot
 
-# 追踪 + Dashboard + 报告 同时使用
+# Trace + Dashboard + Report combined
 python run.py --index 1 --periods 30 --trace --plot --report
 ```
 
-### 输出文件说明
+### Output Files
 
-| 参数 | 输出文件 | 用途 |
-|------|---------|------|
-| `--trace --trace-file FILE` | `.log` 文本 | Step A/B/C/D 全链路决策追踪 |
-| `--plot` | `dashboard_<N>.html` | 交互式 Plotly 图表 + 算法公式(MathJax渲染) |
-| `--report` | `report_<N>.md` | Markdown 报告：LaTeX公式 + 逐期决策表 + 推理时间线 + OR参数演化 |
-| 默认 | `run_result_<N>.json` | 结构化 JSON 结果数据 |
+| Flag | Output File | Purpose |
+|------|------------|---------|
+| `--trace --trace-file FILE` | `.log` text | Full Step A/B/C/D decision trace |
+| `--plot` | `dashboard_<N>.html` | Interactive Plotly charts + formulas (MathJax) |
+| `--report` | `report_<N>.md` | Markdown report: LaTeX equations + per-period decision table + reasoning timeline + OR parameter evolution |
+| default | `run_result_<N>.json` | Structured JSON result data |
 
-### Dashboard 图表说明
+### Dashboard Charts
 
-`--plot` 生成一个自包含的 Plotly HTML 交互式 Dashboard，包含 4 张图表：
+`--plot` generates a self-contained Plotly HTML dashboard with 4 charts:
 
-| # | 图表 | 交互方式 | 面试展示要点 |
-|---|------|---------|------------|
-| 1 | **决策对比图** | hover 查看数值 | LLM vs OR 下单量对比，Δ 柱标出覆盖方向 |
-| 2 | **库存水位图** | hover 查看数值 | 在库 + 到货 vs 需求，红色 X 标记断货点 |
-| 3 | **累计收益曲线** | hover 查看数值 | 累计 + 逐期收益，断货点 ⚠️ 标注 |
-| 4 | **推理洞察时间线** | hover 看 LLM 推理 | 蓝点=LLM决策理由，金色星=跨期洞察生成 |
+| # | Chart | Interaction | Presentation Value |
+|---|-------|-------------|-------------------|
+| 1 | **Decision Comparison** | hover for values | LLM vs OR order quantity, Δ bars show override direction |
+| 2 | **Inventory Waterfall** | hover for values | On-hand + arrivals vs demand, red X marks stockout points |
+| 3 | **Cumulative Reward Curve** | hover for values | Cumulative + per-period reward, stockout ⚠ markers |
+| 4 | **Reasoning Insight Timeline** | hover for LLM reasoning | Blue dots = LLM rationale, gold stars = cross-period insight generation |
 
-Dashboard 头部显示 6 个 KPI：Total Reward / Normalized / Periods / LLM Overrides OR / Stockouts / Insights
+Dashboard header shows 6 KPIs: Total Reward / Normalized / Periods / LLM Overrides OR / Stockouts / Insights
 
-### 程序化调用
+### Programmatic Usage
 
 ```python
 from or_to_llm import InstanceLoader, InventoryEnv, ORToLLMAgent, normalized_reward
@@ -371,39 +394,67 @@ nr = normalized_reward(total_reward, p=config["p"], total_demand=sum(config["tes
 print(f"Normalized Reward: {nr:.4f}")
 ```
 
+### Running Meta-Harness
+
+```bash
+# Run H1 optimization (outer loop with Claude Code proposer)
+python -m meta_harness.runner
+```
+
 ---
 
-## 项目文件清单
+## Project File Structure
 
 ```
-nio/
-├── run.py                      # 通用 CLI 实验脚本
-├── README.md                   # 本文档
-├── readme_index.md             # README 方案草稿 (可删除)
-├── or_to_llm/                  # 核心包
-│   ├── __init__.py             # 聚合导出
-│   ├── env.py                  # 库存环境 (InventoryEnv, InTransitOrder, PeriodResult)
-│   ├── or_baseline.py          # OR 基线策略 (ORBaseline, ORRecommendation)
-│   ├── agent.py                # LLM 智能体 (ORToLLMAgent, System Prompt, ResponseParser)
-│   └── data.py                 # 数据加载与评估 (InstanceLoader, normalized_reward)
-└── InventoryBench-main/        # 数据集 (git clone 后生成)
+core/
+├── run.py                          # Universal CLI experiment script
+├── compare.py                      # Comparison experiment (Original vs Harness)
+├── README.md                       # This document
+├── or_to_llm/                      # Core agent package
+│   ├── __init__.py                 # Aggregate exports
+│   ├── env.py                      # Inventory environment (InventoryEnv, InTransitOrder, PeriodResult)
+│   ├── or_baseline.py              # OR baseline strategy (ORBaseline, ORRecommendation)
+│   ├── agent.py                    # LLM agent (ORToLLMAgent, System Prompt, ResponseParser)
+│   ├── data.py                     # Data loading & evaluation (InstanceLoader, normalized_reward)
+│   ├── reviewer.py                 # ReviewerAgent for auditing LLM decisions
+│   ├── trace.py                    # TraceLogger for Step A/B/C/D tracing
+│   ├── visualize.py                # Plotly DashboardBuilder
+│   ├── report.py                   # Markdown ReportBuilder
+│   └── harness/                    # Sub-package: Harness pipeline (factory, runner, services)
+├── meta_harness/                   # Meta-optimization framework
+│   ├── runner.py                   # Outer-loop orchestrator (MetaHarnessRunner)
+│   ├── evaluator.py                # Candidate evaluator against holdout instances
+│   ├── proposer.py                 # Claude Code subprocess proposer
+│   ├── validator.py                # H1/H2/H2X candidate validator
+│   ├── trace_store.py              # Trace persistence + query
+│   ├── reporter.py                 # HTML report generator
+│   ├── narrative.py                # H1→H2→H2X→H2M causal chain narrative
+│   ├── config.py                   # Centralized configuration
+│   ├── claude_wrapper.py           # Claude CLI programmatic wrapper
+│   ├── h2/                         # H2 architecture (Analyst + Decider)
+│   ├── h2x/                        # H2X architecture (+ Memory + Reviewer)
+│   ├── h2m/                        # H2M architecture (+ Conversation)
+│   ├── h2u/                        # H2U architecture
+│   ├── candidates/                 # Prompt candidates (000-017, h2_*, h2x_*, h2u_*)
+│   └── scripts/                    # Evaluation and diagnostics scripts
+└── InventoryBench-main/            # Dataset (git clone separately, not in repo)
     └── benchmark/synthetic_trajectory/
-        ├── lead_time_0/        # L=0: 240 个实例
-        └── lead_time_4/        # L=4: 240 个实例
+        ├── lead_time_0/            # L=0: 240 instances
+        └── lead_time_4/            # L=4: 240 instances
 ```
 
 ---
 
 ## FAQ
 
-**Q: 为什么只支持 L=0 和 L=4？**
-论文中大多数实验使用这两个固定提前期。随机提前期 (lead_time_stochastic) 暂未适配。
+**Q: Why only L=0 and L=4?**
+The paper's main experiments use these two fixed lead times. Stochastic lead time (`lead_time_stochastic`) is not yet adapted.
 
-**Q: 数据集的 480 个实例如何构成？**
-10 种需求模式 × 4 种变体 × 3 种关键分位数 (ρ) × 2 次随机实现 × 2 种提前期 = 480。
+**Q: How are the 480 instances structured?**
+10 demand patterns × 4 variants × 3 critical fractiles (ρ) × 2 random seeds × 2 lead times = 480.
 
-**Q: LLM 调用失败怎么办？**
-解析失败时自动降级为 OR 基线的推荐量。网络错误重试 3 次，间隔 5/10/15 秒。
+**Q: What happens when LLM inference fails?**
+On parse failure, the agent automatically falls back to the OR baseline recommendation. Network errors retry 3 times with 5/10/15 second intervals.
 
-**Q: 如何切换模型？**
-`python run.py --index 1 --model deepseek-chat`。只要是 OpenAI-compatible API 即可。
+**Q: How do I switch models?**
+`python run.py --index 1 --model deepseek-chat`. Any OpenAI-compatible API works. Set `EVAL_API_KEY` and `EVAL_BASE_URL` environment variables.
